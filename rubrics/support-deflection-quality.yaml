@@ -1,0 +1,38 @@
+rubric_id: support-deflection-quality@1
+version: 1
+kind: cross_domain
+description: >
+  The core resolution-quality rubric, applied to every customer-facing
+  response. Measures whether the response actually resolves (or honestly
+  routes) the customer's need — and specifically guards against false
+  deflection: dead-ending a customer who needed a human behind a
+  confident-sounding non-answer. Mirrors Hydra's judge-registry rubric of
+  the same id.
+applies_when: always
+dimensions:
+  - id: correct-resolution
+    description: >
+      0 = wrong answer or wrong procedure; 1 = partially correct with gaps
+      that will bounce the ticket; 2 = correct for the stated need;
+      3 = correct including the unstated-but-evident need.
+  - id: grounded-in-kb
+    description: >
+      0 = facts unsupported by retrieved sources; 2 = factual claims cited;
+      3 = cited with freshness verified on policy/pricing/security topics.
+  - id: no-false-deflection
+    description: >
+      0 = customer needing a human was dead-ended (bot wall) or a
+      NO_ANSWER case was padded with plausible invention; 2 = honest
+      resolution or honest routing; 3 = the harder honest path taken over
+      the easier deflection (visible in the trace).
+  - id: escape-hatch-offered
+    description: >
+      0 = no path to a human discoverable in the response; 2 = escape hatch
+      present; 3 = escape hatch contextual to the case (named queue, ticket
+      ref, expected response time).
+pass_threshold: "all dimensions >= 2"
+hitl_on_fail: false
+notes: >
+  no-false-deflection at 0 is reported to Hestia and counted in KPI
+  monitoring; a pattern of false deflection is a deployment-roadmap
+  demotion signal (run -> walk).

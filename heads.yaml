@@ -1,0 +1,149 @@
+# Xenia — canonical head registry (9 heads + 1 sub-agent)
+# The crown: Hestia leads; Hermes, Themis, Eunomia gate; the rest execute.
+# Manifesto: Xun (gentle penetration) converts Kan (risk) into Dui (delight).
+
+heads:
+  - mythic: Hestia
+    slug: support-supervisor
+    authority: gatekeeper
+    model_tier: opus
+    cell: influence   # Xun — the gentle order of the hearth
+    scope: "Crown lead: SLA enforcement, dispatch across heads, budget control, final DecisionRecord assembly"
+    skills:
+      - escalation-hitl-patterns
+      - loop-budget-control
+      - portable-context-token
+      - support-kpi-monitoring
+    tools:
+      - xenia.output.write
+      - xenia.output.read
+      - eights.memory.recall
+      - eights.memory.remember
+      - telemetry-grep
+
+  - mythic: Iris
+    slug: intake-router
+    authority: execute
+    model_tier: haiku
+    cell: risk        # Kan — first to peer into the abyss of the ticket
+    scope: "Intake and routing: intent, language, sentiment, priority classification; portable-context minting"
+    skills:
+      - ticket-triage-classification
+      - portable-context-token
+    tools:
+      - ticket-system-bridge
+      - xenia.output.write
+
+  - mythic: Metis
+    slug: knowledge-answer
+    authority: execute
+    model_tier: sonnet
+    cell: influence   # Xun — wisdom that penetrates every corner
+    scope: "KB-grounded retrieval and answer-craft with mandatory citations and freshness awareness"
+    skills:
+      - kb-rag-citation
+      - freshness-aware-retrieval
+      - kb-gap-detection
+    tools:
+      - kb-rag
+      - xenia.output.write
+
+  - mythic: Asclepius
+    slug: tech-diagnosis
+    authority: execute
+    model_tier: sonnet
+    cell: risk        # Kan — descends into logs to bring back a cure
+    scope: "Technical diagnosis: log analysis, reproduction, runbooks; PRD fragments toward engineering"
+    skills:
+      - runbook-diagnosis
+      - tool-execution-standards
+      - kb-rag-citation
+    tools:
+      - telemetry-grep
+      - kb-rag
+      - xenia.output.write
+
+  - mythic: Harmonia
+    slug: deescalation-tone
+    authority: execute
+    model_tier: sonnet
+    cell: delight     # Dui — reconciliation made audible
+    scope: "De-escalation and tone: angry-customer handling, sentiment-adaptive style with anti-manipulation guardrails"
+    skills:
+      - empathy-sentiment-modulation
+      - policy-compliance-awareness
+    tools:
+      - xenia.output.write
+
+  - mythic: Soteria
+    slug: retention-success
+    authority: execute
+    model_tier: sonnet
+    cell: delight     # Dui — she who preserves; tags wins into delight memory
+    scope: "Retention and success: churn-risk signals, recommend-only offers, delight-memory tagging; parent of Echo"
+    skills:
+      - empathy-sentiment-modulation
+      - policy-compliance-awareness
+      - support-kpi-monitoring
+    tools:
+      - ticket-system-bridge
+      - xenia.output.write
+      - eights.memory.remember
+
+  - mythic: Hermes
+    slug: escalation-handoff
+    authority: gatekeeper
+    model_tier: opus
+    cell: risk        # Kan — the only one who crosses between worlds
+    scope: "Escalation and human handoff: owns the HITL boundary, escalation triggers, approval artifacts, context-rich packets"
+    skills:
+      - escalation-hitl-patterns
+      - portable-context-token
+      - policy-compliance-awareness
+    tools:
+      - ticket-system-bridge
+      - xenia.output.write
+      - eights.memory.remember
+
+  - mythic: Themis
+    slug: quality-review
+    authority: gatekeeper
+    model_tier: opus
+    cell: influence   # Xun — right order, gently enforced
+    scope: "Quality and fairness review: judges every customer-facing artifact against rubrics pre-ship; blocks on fail"
+    skills:
+      - kb-rag-citation
+      - empathy-sentiment-modulation
+      - support-kpi-monitoring
+    tools:
+      - xenia.output.read
+      - xenia.output.write
+
+  - mythic: Eunomia
+    slug: compliance-redaction
+    authority: gatekeeper
+    model_tier: opus
+    cell: risk        # Kan — lawful order at the boundary of the abyss
+    scope: "Compliance and redaction: PII guard at every boundary, AI disclosure, right-to-human, OWASP LLM defenses"
+    skills:
+      - owasp-llm-defenses
+      - policy-compliance-awareness
+      - tool-execution-standards
+    tools:
+      - xenia.output.write
+      - eights.memory.remember
+
+sub_agents:
+  - mythic: Echo
+    slug: voc-synthesis
+    parent: retention-success
+    authority: execute
+    model_tier: haiku
+    cell: influence   # Xun — the voice that returns
+    scope: "Voice-of-customer synthesis: theme clustering across tickets, sentiment trends, product feedback briefs"
+    skills:
+      - support-kpi-monitoring
+      - kb-gap-detection
+    tools:
+      - xenia.output.write
+      - eights.memory.recall

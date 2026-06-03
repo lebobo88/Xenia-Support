@@ -1,0 +1,35 @@
+rubric_id: sla-p1-1hour
+version: 1
+kind: governance
+description: >
+  P1 tickets (outage, security incident, data loss, regulated deadline) get a
+  first response in under 60 minutes, with a warning threshold at 45 minutes
+  that forces an escalation decision. Also verifies the priority itself was
+  correctly assigned, so SLA clocks attach to the right tickets.
+applies_when: "ticket.priority == 'P1'"
+dimensions:
+  - id: time-to-first-touch
+    description: >
+      0 = first response after 60 min with no escalation decision;
+      1 = after 60 min but escalation packet in flight;
+      2 = within 60 min; 3 = within 30 min.
+  - id: priority-correctness
+    description: >
+      0 = clear P1 signals (outage/security/data-loss) missed or a non-P1
+      inflated to P1; 2 = defensible call on ambiguous signals;
+      3 = correct with rationale recorded at triage.
+  - id: escalation-decision-at-warn
+    description: >
+      0 = 45-minute warning passed with neither resolution nor an explicit
+      escalate/continue decision by Hestia; 2 = decision recorded at warn;
+      3 = decision recorded with rationale and customer informed of status.
+  - id: status-communication
+    description: >
+      0 = customer uninformed while clock ran; 2 = holding response sent
+      within SLA with honest status; 3 = holding response plus concrete
+      next-update commitment that was kept.
+pass_threshold: "all dimensions >= 2"
+hitl_on_fail: true
+notes: >
+  A breached P1 SLA is never silently absorbed: fail routes to Hermes with
+  trigger 'SLA breach risk' and surfaces in the DecisionRecord sla block.

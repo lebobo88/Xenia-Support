@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo Xenia hearth -- 9 heads + Echo loaded (Xun converts Kan into Dui)",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|mcp__.*xenia.*output_write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -File .claude/hooks/pre-response-redaction.ps1",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*ticket.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -File .claude/hooks/pre-tool-privilege.ps1",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|mcp__.*xenia.*output_write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -File .claude/hooks/post-output-sla-stamp.ps1",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
