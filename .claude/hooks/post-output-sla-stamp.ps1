@@ -69,7 +69,9 @@ try {
     }
 
     $ticketId = $null
-    if ($normPath -match '(?i)(TICKET[-_][A-Za-z0-9]+|[A-Z]{2,5}-\d{2,8})') { $ticketId = $Matches[1] }
+    # Prefer the body's explicit ticket_id field; fall back to the path.
+    if ($body -match '(?i)ticket_id:\s*([A-Za-z0-9_-]+)') { $ticketId = $Matches[1] }
+    elseif ($normPath -match '(?i)(TICKET[-_][A-Za-z0-9]+(?:-\d{1,4})?|[A-Z]{2,5}-\d{2,8})') { $ticketId = $Matches[1] }
 
     $kind = 'xenia.output_written'
     switch ($phase) {
@@ -92,19 +94,30 @@ try {
     $category = 'general'
     if ($body -match '(?i)intent:\s*([a-z-]+)') { $category = $Matches[1].ToLower() }
 
+    # Opaque customer ref (constitution Article IV: hash only, never raw identity)
+    $customerRef = $null
+    if ($body -match '(?i)customer:([0-9a-f]{6,})') { $customerRef = "customer:$($Matches[1].ToLower())" }
+
+    # Outcome tagging (Soteria's delight convention rides the event too)
+    $outcome = $null
+    if ($body -match '(?i)outcome:\s*delight') { $outcome = 'delight' }
+    elseif ($body -match '(?i)terminal_state:\s*RESOLVED') { $outcome = 'resolved' }
+
     # ---------- build + append event (single line, atomic append) ----------------
     $rand = -join ((48..57) + (97..102) | Get-Random -Count 4 | ForEach-Object { [char]$_ })
     $evt = [ordered]@{
-        event_id  = "x-$([datetime]::UtcNow.Ticks)-$rand"
-        ts        = [datetime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
-        kind      = $kind
-        agent     = $agentSlug
-        phase     = $phase
-        ticket_id = $ticketId
-        severity  = $severity
-        category  = $category
-        path      = $normPath
-        sla_state = $slaState
+        event_id     = "x-$([datetime]::UtcNow.Ticks)-$rand"
+        ts           = [datetime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
+        kind         = $kind
+        agent        = $agentSlug
+        phase        = $phase
+        ticket_id    = $ticketId
+        severity     = $severity
+        category     = $category
+        customer_ref = $customerRef
+        outcome      = $outcome
+        path         = $normPath
+        sla_state    = $slaState
     }
 
     $progressDir = Join-Path $root 'hearth/progress'
@@ -112,7 +125,10 @@ try {
     $eventsFile = Join-Path $progressDir 'events.jsonl'
 
     $line = ($evt | ConvertTo-Json -Compress -Depth 4)
-    Add-Content -LiteralPath $eventsFile -Value $line -Encoding utf8
+    # BOM-less UTF-8 append (Windows PowerShell 5.1's Add-Content -Encoding utf8
+    # writes a BOM on file creation, which breaks JSON.parse on the first line
+    # for the TheEights watcher). AppendAllText with explicit no-BOM encoding.
+    [System.IO.File]::AppendAllText($eventsFile, $line + "`n", (New-Object System.Text.UTF8Encoding($false)))
 
     Write-Output "$($evt.ts) | agent=$agentSlug | event=$($evt.event_id) | kind=$kind | stamped"
 } catch {
