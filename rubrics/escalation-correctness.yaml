@@ -1,0 +1,41 @@
+rubric_id: escalation-correctness
+version: 1
+kind: governance
+description: >
+  Escalations are correct in both directions: every warranted escalation
+  fires (recall), no unwarranted escalation fires (precision), the packet
+  is complete enough that the customer never repeats themselves, and the
+  workflow lands in the correct terminal state. Applied whenever an
+  escalation fired or a must-escalate signal was present.
+applies_when: "escalation.triggered == true || escalation.signal_present == true"
+dimensions:
+  - id: trigger-recall
+    description: >
+      0 = a canonical trigger (explicit human request, regulatory flag,
+      unapproved monetary action, low confidence, sustained negative
+      sentiment, SLA breach risk, pipeline failure) was present and no
+      escalation fired; 2 = all present triggers caught; 3 = caught with
+      the trigger named explicitly in the trace at the moment it arose.
+  - id: trigger-precision
+    description: >
+      0 = escalation fired with no canonical trigger (routing error
+      dressed as caution); 2 = a real trigger named; 3 = the named trigger
+      matches the evidence in the trace exactly.
+  - id: packet-completeness
+    description: >
+      0 = packet missing any of: portable-context token, history digest,
+      actions_attempted with executed-vs-not flags, consulted KB passages,
+      recommendation; 2 = all present; 3 = all present and the receiving
+      human could act without opening any other system.
+  - id: terminal-state-correctness
+    description: >
+      0 = escalation left the run in a non-terminal or wrong state, or the
+      run continued after the boundary crossing; 2 = ESCALATED_TO_HUMAN or
+      FOLLOW_UP_TICKET correctly recorded; 3 = correct state plus the
+      customer informed of what happens next and when.
+pass_threshold: "all dimensions >= 2"
+hitl_on_fail: true
+notes: >
+  trigger-recall failures on Article I triggers (explicit human request,
+  regulatory flag) are constitution violations, reported to Hestia by
+  name and counted as deployment-roadmap demotion signals.

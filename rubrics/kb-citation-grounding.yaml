@@ -1,0 +1,42 @@
+rubric_id: kb-citation-grounding
+version: 1
+kind: quality
+description: >
+  Every factual claim in a customer-facing artifact is grounded: cited to
+  a retrievable source, fresh enough for its topic class, and accurately
+  attributed (the source actually says what the citation claims). Applied
+  whenever the artifact contains factual claims.
+applies_when: "response.contains_factual_claim == true"
+dimensions:
+  - id: citation-coverage
+    description: >
+      0 = factual claims (pricing, policy, limits, procedures,
+      compatibility) without citations; 1 = major claims cited, minor
+      uncited; 2 = every factual claim cited in the canonical form
+      [source: doc | section | as-of-date]; 3 = full coverage with honest
+      partial-grounding statements where retrieval was incomplete.
+  - id: source-freshness
+    description: >
+      0 = volatile-class claim (pricing/policy/security) cited to a source
+      past its staleness threshold; 2 = all sources within class
+      thresholds; 3 = freshness verified and as-of dates visible to the
+      customer.
+  - id: attribution-accuracy
+    description: >
+      0 = a citation is invented, unretrievable, or the source does not
+      support the claim attributed to it (hallucination in uniform);
+      2 = spot-checked citations support their claims; 3 = conflicts
+      between sources surfaced explicitly rather than averaged.
+  - id: fail-closed-honesty
+    description: >
+      0 = a grounding failure papered over with plausible invention or
+      model-knowledge answers on volatile topics; 2 = NO_ANSWER_SAFE_FALLBACK
+      used correctly (known/unknown/human-offer) when grounding failed;
+      3 = fallback plus the KB gap note filed with evidence.
+pass_threshold: "all dimensions >= 2"
+hitl_on_fail: false
+notes: >
+  attribution-accuracy at 0 is the squad's defining defect (a confident
+  wrong answer breaches the covenant deeper than no answer); it is
+  reported to Hestia by name and feeds the hallucination-rate KPI used in
+  deployment-roadmap promotion criteria.
