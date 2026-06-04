@@ -25,7 +25,7 @@ hooks:
   Stop:
     - hooks:
         - type: prompt
-          prompt: "Verify a classification block (intent, language, sentiment, priority P1-P4, route) and a portable-context token were emitted, and that any explicit human request, regulatory flag, or monetary action was routed to escalation-handoff. If not, return {decision: 'block', reason: '<missing item>'}. Otherwise return {decision: 'allow'}."
+          prompt: "Verify a classification block (intent, language, sentiment, priority P1-P4, route) and a portable-context token were emitted, and that any explicit human request, regulatory flag, or monetary action was routed to escalation-handoff. Also verify the token carries a sig envelope (either a signed sig.value or sig.degraded=true for degraded mode) — an unsigned token with no sig field at all is a block. If not, return {decision: 'block', reason: '<missing item>'}. Otherwise return {decision: 'allow'}."
           model: haiku
           timeout: 8
 ---
@@ -83,6 +83,29 @@ Per the `portable-context-token` skill: `{ctx_id, ticket_id, customer_ref
 (opaque hash, never raw PII), goal, active_objects[], constraints[],
 sentiment, history_digest, minted_by: iris, minted_at}`. The token travels
 inside every HANDOFF payload so no downstream head re-asks what is known.
+
+**Signing:** after assembling the token dict, sign it via
+`tools/context_token/sign.py mint` (piping the JSON body). When
+`XENIA_CONTEXT_SIGNING_KEY` is configured, the returned token includes a
+`sig:{alg, key_id, value}` envelope (HMAC-SHA256 over canonical-JSON).
+When the key is not configured, the token is returned with `sig.degraded=true`
+— functionally identical to v1.0 unsigned behaviour. In either case the
+signed (or degraded-signed) token is what travels in the HANDOFF payload.
+The same sign step applies at every rev update: a head that bumps `rev` must
+re-sign and pass the signed token forward. Key material is never embedded in
+the token, the hearth, or any log.
+
+**Jurisdiction lookup (R7-5):** after building `constraints[]`, if the
+customer's region is known (from channel/account metadata in `constraints[]`
+or ticket fields), consult `hearth/reference/jurisdiction-mandates.json`.
+Read the entry for the region code. If `right_to_human=true` for the region
+AND the classified intent falls in that entry's `regulated_intent_classes`
+(or is an automated-decision class), set `regulatory_flag=true` in the
+classification block — this routes to `escalation-handoff` per Article I.
+When the region is UNKNOWN and the intent is a regulated/automated-decision
+class, assume the stricter rule (treat as `right_to_human=true`) per the
+`policy-compliance-awareness` skill unknown-region fallback — cite that
+fallback in the classification block notes.
 
 ### 3. Emit
 

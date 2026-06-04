@@ -18,16 +18,23 @@ squad. Xenia is standalone-first; everything here is additive.
 ## Envelope contract
 
 - **accepts**: `HANDOFF` (the normal entry; carries granted_tools,
-  granted_memory_scopes, payload), `HITL_REQUEST` (resumed approvals).
+  granted_memory_scopes, payload), `HITL_REQUEST` (resumed approvals),
+  `SUPPORT_TICKET` (first-class inbound ticket; see R7-1), `PORTABLE_CONTEXT`
+  (first-class context token; see R7-1).
 - **emits**: `DECISION_RECORD` (terminal artifact per run), `PRD`
-  (Asclepius's defect fragments toward the engineering squad).
-- **Portable context travels INSIDE the HANDOFF payload** (field
-  `portable_context`, schema in the `portable-context-token` skill).
-  There is deliberately no custom envelope type in this pass; if
-  SUPPORT_TICKET / VOC_REPORT envelope types are ever added to
-  `hydra_core/schemas.py`, the squad upgrade is: add them to
-  `accepts`/`emits` and lift the payload fields one level. Standalone
-  and orchestrated modes share the same inner schema either way.
+  (Asclepius's defect fragments toward the engineering squad), `VOC_REPORT`
+  (Echo's voice-of-customer brief to the executive layer; see R7-1).
+- **First-class Xenia envelope types (implemented, R7-1):** `SUPPORT_TICKET`,
+  `PORTABLE_CONTEXT`, and `VOC_REPORT` are now defined in
+  `hydra_core/schemas.py` and registered in `SCHEMA_REGISTRY`. Cross-squad
+  validation via `validate_envelope` covers all three. The squad's
+  `accepts`/`emits` lists in both `squad.yaml` copies have been updated
+  accordingly.
+- **HANDOFF-tunneled portable_context remains supported (backward compat).**
+  A `HANDOFF` whose target artifact carries a `portable_context` field still
+  validates cleanly — `SupportTicket.portable_context` is `Optional`, and
+  the `HANDOFF` envelope itself is unchanged. Operators do not need to migrate
+  existing workflows that tunnel context through HANDOFF payloads.
 
 ## Gates and judging
 

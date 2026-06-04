@@ -60,6 +60,37 @@ change; tracked here regardless. Status values: `planned`, `proposed`
 - Harnesses that load `hooks.json` fire Layer-3 hooks automatically; the
   build session invoked them explicitly with the same env contract.
 
+## Residual risks & deployment dependencies (recorded, not silently accepted)
+
+These are accepted residuals where a control is documented-as-contract or
+operator-configured rather than code-enforced. They are listed so a
+deployment closes them deliberately.
+
+- **Layer-3 hook single-writer is operator-config, not code-enforced (R7-3).**
+  `events.jsonl` has one writer by rule. In this deployment `hooks.json`
+  references only the `.ps1` set, so the rule holds inherently (the `.sh`
+  ports are dormant until a POSIX `hooks.json` is authored). A POSIX
+  deployment MUST reference the `.sh` set XOR the `.ps1` set — never both.
+  Each hook header states this; there is no runtime guard that detects a
+  misconfigured both-sets deployment. Mitigation if needed later: a
+  platform-marker check in the stamp hooks.
+- **Channel ingress redaction is contract-only, deployment-supplied (R7-4).**
+  `integrations/channels.md` requires PII to be hashed to `customer:<hash>`
+  at the channel edge before it enters the pack (Article IV at ingress).
+  This depends on the deployment's adapter, not pack code. The pack's own
+  layers (Eunomia L2, hooks L3, bridge L4) still redact anything that slips
+  through, but the cleanest control — never letting raw identity enter —
+  lives in deployment-supplied adapter code. A deployment without a
+  conforming adapter falls back to Iris triaging pasted text with
+  operator-applied redaction.
+- **Jurisdiction data is reference, not legal advice (R7-5).**
+  `hearth/reference/jurisdiction-mandates.json` carries named statutory
+  bases and `verify-with-counsel` notes on uncertain entries. The
+  operational consequence is deliberately conservative: unknown region +
+  regulated intent assumes the stricter right-to-human rule. Counsel
+  verification is still required before the table is treated as
+  policy-complete for any specific deployment's jurisdictions.
+
 ## Non-goals (recorded so they stay decisions, not omissions)
 
 - Formal SOC 2 / ISO 27001 certification work — referenced as context in

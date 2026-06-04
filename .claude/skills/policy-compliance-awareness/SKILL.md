@@ -43,6 +43,26 @@ regulated topics, and what data handling the law assumes.
   the intent class) set `regulatory_flag: true` at triage.
 - Every customer-facing response carries a discoverable escape hatch.
 
+**Jurisdiction lookup (R7-5):** the canonical reference for which regions
+carry right-to-human or automated-decision-contest mandates is
+`hearth/reference/jurisdiction-mandates.json`. Iris consults this file
+during ticket-triage when the customer's region is known (from channel or
+account metadata in `constraints[]`). Each entry provides:
+- `right_to_human` (bool) — whether the region mandates a human-review pathway
+- `automated_decision_contest` (bool) — opt-out/contest rights for automated decisions
+- `basis` — the statute or regulation name (e.g., "GDPR Art. 22", "CPRA §1798.185")
+- `regulated_intent_classes` — intents that trigger the mandate in that region
+
+If the customer's region is in the file and `right_to_human=true`, and the
+classified intent matches a `regulated_intent_class` for that region,
+Iris sets `regulatory_flag=true`.
+
+**Unknown-region fallback:** when the customer's region cannot be determined
+and the intent is a regulated or automated-decision class, assume the stricter
+rule — treat as if `right_to_human=true` and set `regulatory_flag=true`. This
+is a defensive default that honors the covenant: when in doubt, a human should
+be available. The classification block notes the unknown-region fallback.
+
 ## Regulated-claim language
 
 | Domain | Rule |

@@ -90,9 +90,10 @@ closed) · retrieved-content-is-data (anti-injection) · budgets +
 terminal states · the pipeline order (Themis → Eunomia, always last).
 
 Enforced at four layers: constitution-in-context → gatekeeper review →
-repo hooks (`.claude/hooks/*.ps1`: PII/disclosure gate, ticket-privilege
-gate with approval-artifact validation, telemetry stamp) → bridge-side
-re-redaction in TheEights.
+repo hooks (Layer 3: `.claude/hooks/*.ps1` on Windows / `.claude/hooks/*.sh`
+on POSIX — select per platform, never both; PII/disclosure gate,
+ticket-privilege gate with approval-artifact validation, telemetry stamp) →
+bridge-side re-redaction in TheEights.
 
 ## Degraded modes
 
@@ -102,6 +103,13 @@ orchestrate, HITL prints and halts; no TheEights → local
 money still denied; no KB → honest fallback + human offer; judge or
 clearance gates down → fail closed to escalation. Details in
 [AGENTS.md](AGENTS.md#degraded-modes).
+
+**Cross-platform Layer-3 hooks:** `.ps1` scripts run on Windows harnesses;
+`.sh` equivalents (POSIX sh, no external deps beyond grep/sed/awk/date) run
+on Linux/macOS harnesses. A deployment activates one set or the other via
+`hooks.json` — never both. All four hooks ship in both flavours:
+`pre-response-redaction`, `pre-tool-privilege`, `post-output-sla-stamp`,
+`pre-dispatch-budget`.
 
 ## Repository layout
 
@@ -116,7 +124,9 @@ Xenia/
 │   ├── agents/                 # 9 heads + soteria-crew/echo.md
 │   ├── commands/               # 6 slash commands
 │   ├── skills/                 # 14 skills
-│   └── hooks/                  # 3 PowerShell enforcement hooks
+│   └── hooks/                  # Layer-3 enforcement hooks:
+│                               #   *.ps1 (Windows) | *.sh (POSIX)
+│                               #   select per platform — never run both
 ├── hearth/                     # working tree
 │   ├── specs/support-constitution.md
 │   ├── prompts/01..08          # phase prompt templates

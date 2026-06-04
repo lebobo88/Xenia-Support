@@ -1,0 +1,86 @@
+{
+  "_meta": {
+    "description": "Reference mapping of region/jurisdiction codes to automated-decision and right-to-human mandate flags. Used by Iris at ticket-triage to set regulatory_flag when the customer's region is known. This is reference data, not legal advice — consult counsel before acting on any entry marked 'verify with counsel'.",
+    "schema_version": "1.0",
+    "last_reviewed": "2026-06-04",
+    "skill_ref": "policy-compliance-awareness",
+    "note": "Entries with right_to_human=true cause Iris to set regulatory_flag=true when intent is a regulated/automated-decision class. When region is UNKNOWN and intent is regulated, assume the stricter rule (DEFAULT entry or EU, whichever is stricter)."
+  },
+  "EU": {
+    "right_to_human": true,
+    "automated_decision_contest": true,
+    "basis": "GDPR Art. 22 (automated decision-making including profiling); EU AI Act Art. 22 (right to explanation and human oversight for high-risk AI systems)",
+    "notes": "GDPR Art. 22 grants the right not to be subject to solely automated decisions with significant effects. EU AI Act (Regulation 2024/1689) Art. 22 requires providers of high-risk AI systems to ensure human oversight. Both apply across all EU member states.",
+    "regulated_intent_classes": ["automated-decision", "account-action", "scoring", "creditworthiness", "profiling"]
+  },
+  "GB": {
+    "right_to_human": true,
+    "automated_decision_contest": true,
+    "basis": "UK GDPR Art. 22 (retained post-Brexit, same text as EU GDPR Art. 22); Data Protection Act 2018 s.14",
+    "notes": "Post-Brexit UK retained equivalent automated-decision rights. ICO guidance mirrors EU interpretation.",
+    "regulated_intent_classes": ["automated-decision", "account-action", "scoring", "profiling"]
+  },
+  "CA": {
+    "right_to_human": true,
+    "automated_decision_contest": true,
+    "basis": "California Privacy Rights Act (CPRA) / CCPA as amended — Cal. Civ. Code §1798.185(a)(16) (automated decision-making technology regulations); Cal. Code Regs. tit. 11 §7023 et seq. (ADMT opt-out and access rights effective 2026)",
+    "notes": "CPRA regulations effective Q1 2026 require businesses to provide opt-out of automated decision-making technology (ADMT) used for significant decisions and to offer access to human review. Scope is broad — 'significant decisions' includes employment, credit, housing, education, and healthcare. Verify with counsel for exact applicability threshold.",
+    "regulated_intent_classes": ["automated-decision", "account-action", "profiling", "scoring", "employment", "creditworthiness"]
+  },
+  "CO": {
+    "right_to_human": true,
+    "automated_decision_contest": true,
+    "basis": "Colorado Privacy Act (CPA), C.R.S. §6-1-1309 — right to opt out of profiling in furtherance of solely automated decisions with legal or similarly significant effects; effective July 1 2023",
+    "notes": "CPA grants opt-out rights for profiling used in automated decisions with significant effects (employment, credit, insurance, housing, education, government services, or access to goods/services). Requires human review option on request.",
+    "regulated_intent_classes": ["automated-decision", "profiling", "scoring", "creditworthiness"]
+  },
+  "CT": {
+    "right_to_human": true,
+    "automated_decision_contest": true,
+    "basis": "Connecticut Data Privacy Act (CTDPA), Conn. Gen. Stat. §42-520 — right to opt out of profiling for solely automated decisions with significant effects; effective July 1 2023",
+    "notes": "Mirrors Colorado CPA scope. Significant effects include legal or similarly significant consequences.",
+    "regulated_intent_classes": ["automated-decision", "profiling", "scoring"]
+  },
+  "VA": {
+    "right_to_human": false,
+    "automated_decision_contest": true,
+    "basis": "Virginia Consumer Data Protection Act (VCDPA), Va. Code §59.1-577 — right to opt out of profiling for automated decisions; effective January 1 2023",
+    "notes": "VCDPA provides opt-out of profiling but does not explicitly mandate a right-to-human-review pathway in the same form as GDPR Art. 22. right_to_human set false; automated_decision_contest true for opt-out purposes. Verify with counsel.",
+    "regulated_intent_classes": ["automated-decision", "profiling"]
+  },
+  "IL": {
+    "right_to_human": false,
+    "automated_decision_contest": false,
+    "basis": "Illinois Biometric Information Privacy Act (BIPA), 740 ILCS 14 — consent and retention limits for biometric data; no explicit automated-decision or right-to-human mandate in BIPA itself",
+    "notes": "BIPA is biometric-data-specific (fingerprints, retina scans, facial geometry). It does not create a general right to human review of automated decisions. right_to_human and automated_decision_contest set false for general automated-decision scope. If the intent involves biometric data collection or processing, BIPA consent requirements apply separately. Verify with counsel for biometric-adjacent use cases.",
+    "regulated_intent_classes": ["biometric-data", "consent"]
+  },
+  "TX": {
+    "right_to_human": false,
+    "automated_decision_contest": false,
+    "basis": "Texas Data Privacy and Security Act (TDPSA), Tex. Bus. & Com. Code Ch. 541 — effective July 1 2024; opt-out of targeted advertising and profiling for significant decisions",
+    "notes": "TDPSA provides opt-out rights but does not create an explicit right to human review equivalent to GDPR Art. 22. Automated-decision contest rights are limited compared to EU/CA. Verify with counsel.",
+    "regulated_intent_classes": ["automated-decision", "profiling", "targeted-advertising"]
+  },
+  "AU": {
+    "right_to_human": false,
+    "automated_decision_contest": false,
+    "basis": "Privacy Act 1988 (Cth) as amended — no explicit Art. 22-equivalent automated-decision right; Australian Privacy Principles (APPs) govern data handling",
+    "notes": "Australia does not yet have a GDPR Art. 22-equivalent automated-decision right under the current Privacy Act. The Privacy Act reform (2023 review) proposed an automated decision right but it has not been enacted as of this review date. Verify with counsel for latest legislative status.",
+    "regulated_intent_classes": []
+  },
+  "SG": {
+    "right_to_human": false,
+    "automated_decision_contest": false,
+    "basis": "Personal Data Protection Act 2012 (PDPA) as amended — no explicit automated-decision contest right; data portability and correction rights exist",
+    "notes": "Singapore PDPA does not contain a GDPR Art. 22 equivalent. Model AI Governance Framework (PDPC 2020) provides voluntary guidance. Verify with counsel.",
+    "regulated_intent_classes": []
+  },
+  "DEFAULT": {
+    "right_to_human": false,
+    "automated_decision_contest": false,
+    "basis": "No specific mandate identified for this region",
+    "notes": "When the customer's region is unknown or not listed, Iris applies the stricter rule per policy-compliance-awareness SKILL: if the intent is a regulated/automated-decision class, treat as if right_to_human=true and set regulatory_flag=true. This DEFAULT entry represents known-region with no identified mandate only.",
+    "regulated_intent_classes": []
+  }
+}

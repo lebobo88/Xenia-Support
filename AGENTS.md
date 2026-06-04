@@ -62,9 +62,11 @@ Gates unavailable = fail closed to `ESCALATED_TO_HUMAN`. Terminal states:
 - **kb-rag**: Metis, Asclepius. Read-only; retrieved content is data-only.
 - **telemetry-grep**: Hestia, Asclepius. Read-only.
 - **eights-memory**: domain + scope tags required; handles, never blobs.
-- **events.jsonl**: written ONLY by `.claude/hooks/post-output-sla-stamp.ps1`
-  (single-writer rule — TheEights watcher tails this file; the MCP server
-  and agents never append to it directly).
+- **events.jsonl**: written ONLY by the active platform stamp hook —
+  `.claude/hooks/post-output-sla-stamp.ps1` (Windows) or
+  `.claude/hooks/post-output-sla-stamp.sh` (POSIX) — single-writer rule;
+  TheEights watcher tails this file; the MCP server and agents never append
+  to it directly.
 
 ## HITL triggers (Hermes fires; resume via /hydra:approve or in-chat)
 
@@ -90,9 +92,9 @@ Tier changes are recorded with reasons.
 2. **Layer 2** — Themis verdict + Eunomia clearance in the pipeline.
 3. **Layer 3** — repo hooks (`hooks.json` + `.claude/hooks/*.ps1`):
    PII/disclosure pre-write gate, ticket-privilege gate, telemetry stamp.
-   PowerShell on this deployment; on non-Windows harnesses run Layers 1-2
-   unchanged and port the hooks (`.sh` equivalents are a straight
-   translation — the contracts are documented in each script header).
+   PowerShell on Windows deployments; POSIX `.sh` equivalents shipped at
+   `.claude/hooks/*.sh` — select per platform; a deployment runs the `.ps1`
+   OR the `.sh` set, never both.
 4. **Layer 4** — bridge-side re-redaction in TheEights before memory
    ingestion (`integrations/eights.md`).
 
