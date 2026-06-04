@@ -91,6 +91,43 @@ deployment closes them deliberately.
   verification is still required before the table is treated as
   policy-complete for any specific deployment's jurisdictions.
 
+## Campaign closeout — residual-risk accounting (2026-06-04)
+
+Every deferred or deployment-supplied surface, the invariant that contains
+it, the failure mode if a deployer bypasses that invariant, and the
+terminal governance stance.
+
+| Deferred surface | Containing invariant | Failure mode if bypassed | Governance stance |
+|---|---|---|---|
+| **Live-traffic experimentation** (R8-2 is offline-only) | experiment-harness: OFFLINE-ONLY rule; winners file as evolution proposals, never self-commit | A deployment A/B-testing on real customers could ship an unjudged variant | NOT implemented here. The harness cannot self-authorize live tests; live experimentation requires deployment controls + the governed propose→evaluate→commit/HITL path |
+| **Channel adapters** (R7-4) | `integrations/channels.md`: PII hashed to `customer:<hash>` at ingress (Article IV at the edge) | Raw identity enters the pack if an adapter skips ingress hashing | DEPLOYMENT-SUPPLIED. Pack layers (Eunomia L2, hooks L3, bridge L4) still redact slip-through; no-adapter fallback = Iris triages pasted text |
+| **Churn-propensity signal** (R8-1) | `integrations/churn-propensity.md`: signal is INPUT only; Article V holds (high churn never authorizes autonomous action) | A deployment wiring churn score to auto-retention would breach recommend-only | DEPLOYMENT-SUPPLIED. CANNOT self-authorize a monetary/retention action; degraded = Soteria's text-based reading |
+| **Proactive outreach** (R8-3) | `integrations/proactive-outreach.md`: 6 non-negotiable gates (consent, Eunomia, Themis, Article III disclosure, Article II no-manipulation, opt-out) | Outbound without consent/clearance violates Articles II/III + consent law | DEPLOYMENT-SUPPLIED, out-of-scope v1. Each gate is a hard precondition; a deployment bypassing any gate violates the constitution |
+| **Layer-3 single-writer** (R7-3) | `events.jsonl` one-writer rule; `.ps1` XOR `.sh` per platform | A misconfigured POSIX deployment referencing both hook sets double-writes telemetry | OPERATOR-CONFIG. This deployment's `hooks.json` references only `.ps1` (single-writer-correct as shipped); no runtime guard for a both-sets misconfig |
+| **Jurisdiction table** (R7-5) | `jurisdiction-mandates.json`: named bases + verify-with-counsel; unknown region assumes stricter | Treating the table as policy-complete without counsel review | REFERENCE, not legal advice. Unknown-region fallback is conservative (assume right-to-human); counsel verification required before policy-complete |
+| **Real KB corpus / ticket backend** (R5-1/R5-2 servers are live; production data is not) | `kb-rag-citation` fail-closed; `ticket-system` Article V at server Layer 0 | Thin/stale KB → low containment (fails safe, not unsafe); a real CRM swaps in behind the same contract | IN-REPO with synthetic corpus; production KB/CRM is deployment-supplied behind the proven contract |
+
+### Closeout verdict
+
+- **Complete in-repo (built, Codex-approved, committed):** 11-head crew +
+  constitution; live `xenia-kb` + `xenia-tickets` MCP servers with Article V
+  at server Layer 0; billing head; cost telemetry; Agent-Manager dashboard;
+  32-attack recurring red-team + `--red-team` mode; mechanical fail-open
+  budget counter; first-class envelope types; HMAC-signed portable-context
+  token; cross-platform `.sh` Layer-3 hooks; jurisdiction lookup; A/B
+  experiment harness. KB + shadow + attack + jurisdiction corpora.
+- **Intentionally deferred (documented as binding deployment contracts):**
+  channel adapters, churn-propensity signal, proactive outreach — each with
+  non-negotiable safety gates that a deployment MUST honor.
+- **Non-operational until deployment supplies the external control plane:**
+  live experimentation, real channel ingress, churn ML, outbound outreach,
+  production KB/CRM data. The pack provides the contract and the safety
+  floor; the deployment provides the data plane and adapters.
+- **Constitution: never modified across any phase.** Article V enforcement
+  grew from 1 point (constitution) to 4+ (constitution + agent prompt +
+  Layer-3 hook + server Layer-0). No roadmap item weakened a safety invariant;
+  several strengthened them.
+
 ## Non-goals (recorded so they stay decisions, not omissions)
 
 - Formal SOC 2 / ISO 27001 certification work — referenced as context in

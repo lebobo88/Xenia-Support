@@ -1,0 +1,11 @@
+# Shell hooks MUST be LF — a CRLF shebang line breaks execution on POSIX.
+*.sh text eol=lf
+# Python helpers: LF for cross-platform consistency.
+*.py text eol=lf
+# Markdown/YAML/JSON: normalize to LF in the repo (checked out per-platform).
+*.md text
+*.yaml text
+*.yml text
+*.json text
+# JSONL corpora: LF (one record per line, parsed cross-platform).
+*.jsonl text eol=lf

@@ -1,6 +1,6 @@
 # Xenia — The Customer-Support Crown
 
-**Status:** active · **Agents:** 11 · **Skills:** 14 · **Commands:** 6 ·
+**Status:** active · **Agents:** 11 · **Skills:** 15 · **Commands:** 7 ·
 **Rubrics:** 6 · **Hooks:** 3
 
 > *Xenia* is the ancient Greek covenant of guest and host — the sacred
@@ -72,6 +72,7 @@ Every run ends in exactly one terminal state: `RESOLVED`,
 /voc-report "last 30 days"
 /kb-gap-report "billing"
 /support-shadow <historical ticket log>     # crawl-phase, offline, dry-run
+/support-experiment <control-vs-variant spec>   # offline A/B variant comparison
 ```
 
 **Orchestrated** (Hydra): the squad registers at
@@ -122,8 +123,8 @@ Xenia/
 ├── rubrics/                    # 6 judging rubrics (Themis + Hydra judge parity)
 ├── .claude/
 │   ├── agents/                 # 9 heads + soteria-crew/echo.md
-│   ├── commands/               # 6 slash commands
-│   ├── skills/                 # 14 skills
+│   ├── commands/               # 7 slash commands
+│   ├── skills/                 # 15 skills
 │   └── hooks/                  # Layer-3 enforcement hooks:
 │                               #   *.ps1 (Windows) | *.sh (POSIX)
 │                               #   select per platform — never run both

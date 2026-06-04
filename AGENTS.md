@@ -78,7 +78,9 @@ sentiment · SLA breach risk (P1 at 45 min) · pipeline failure.
 
 Max 8 subagent dispatches per `/support-ticket` run · Reflexion x1 per
 head · 2 Themis cycles · 2 re-triages · 25 tickets per `/triage-queue`
-pass · 10 per `/support-shadow` pass. Exhaustion = escalate, never spin.
+pass · 10 per `/support-shadow` pass · experiment runs cost 2x+ shadow
+passes — operator confirmation required before exceeding loop-budget limits.
+Exhaustion = escalate, never spin.
 
 ## Model tiers
 
@@ -126,12 +128,23 @@ defect, not an incident, but it is still a defect.
 - Editing hooks at runtime.
 - Overriding the right to a human, ever.
 
+## Commands (7)
+
+`/support-ticket`, `/triage-queue`, `/escalate`, `/voc-report`,
+`/kb-gap-report`, `/support-shadow`, `/support-experiment`
+(offline A/B variant harness — skills: experiment-harness,
+deployment-roadmap, support-kpi-monitoring).
+
 ## Ecosystem integration
 
 `integrations/hydra.md` (squad wiring, envelope mapping),
 `integrations/eights.md` (memory domain, event bridge, cells),
 `integrations/executive-suite.md` (CXO downward/upward routing),
-`integrations/ticket-system.md` (bridge contract + degraded mode).
+`integrations/ticket-system.md` (bridge contract + degraded mode),
+`integrations/churn-propensity.md` (deployment-supplied churn signal
+contract — R8-1, deployment-time only),
+`integrations/proactive-outreach.md` (outbound outreach gates — R8-3,
+deployment-time only, hard consent + Article II/III gates apply).
 Sibling projects: Hydra (orchestrator), TheEights (memory/governance),
 AgentSmith (meta-governance), pair-programmer (Forge), RLM-Creative
 (Garland), MarketBliss, ExecutiveSuite.
