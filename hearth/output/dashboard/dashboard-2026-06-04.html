@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xenia Agent-Manager Dashboard — 2026-06-04 14:22 UTC</title>
+<style>
+:root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222636;
+    --border: #2e3347;
+    --accent: #5b8dee;
+    --accent2: #7c5be8;
+    --warn: #f0a500;
+    --danger: #e05252;
+    --ok: #3dba7a;
+    --muted: #6b7280;
+    --text: #e2e4ef;
+    --text2: #9ba1b3;
+    --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 24px;
+}
+h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+h2 {
+    font-size: 1.05rem; font-weight: 600; color: var(--text);
+    margin: 28px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--text2); margin: 16px 0 6px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.header-meta { color: var(--text2); font-size: 0.82rem; }
+.badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+}
+.badge-ok { background: #1a3a2a; color: var(--ok); }
+.badge-warn { background: #3a2c00; color: var(--warn); }
+.badge-danger { background: #3a1a1a; color: var(--danger); }
+.badge-muted { background: #2a2d3a; color: var(--muted); }
+.badge-accent { background: #1a2340; color: var(--accent); }
+
+/* Partial-data banner */
+.partial-banner {
+    background: linear-gradient(90deg, #3a2c00 0%, #3a3000 100%);
+    border: 1.5px solid var(--warn);
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    color: var(--warn);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.partial-banner span { font-weight: 400; color: #d4b060; margin-left: 6px; }
+
+/* No-data notice */
+.no-data {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    color: var(--text2);
+    margin: 40px 0;
+}
+.no-data h2 { border: none; text-align: center; color: var(--text2); }
+
+/* Anti-Goodhart containment pair */
+.containment-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+@media (max-width: 600px) { .containment-pair { grid-template-columns: 1fr; } }
+.metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+}
+.metric-card.pair-left { border-left: 3px solid var(--accent); }
+.metric-card.pair-right { border-left: 3px solid var(--warn); }
+.metric-label { font-size: 0.75rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+.metric-value { font-size: 1.9rem; font-weight: 700; line-height: 1; }
+.metric-value.ok { color: var(--ok); }
+.metric-value.warn { color: var(--warn); }
+.metric-value.neutral { color: var(--text); }
+.metric-sub { font-size: 0.78rem; color: var(--text2); margin-top: 4px; }
+.pair-label {
+    font-size: 0.7rem; color: var(--accent2); text-transform: uppercase;
+    letter-spacing: 0.1em; font-weight: 700; margin-bottom: 8px;
+}
+.anti-goodhart-note {
+    background: #1a1d2b;
+    border: 1px solid #2a2d4a;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 0.76rem;
+    color: #8b91b3;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+/* KPI grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+}
+.kpi-card .metric-value { font-size: 1.5rem; }
+
+/* Cost card */
+.cost-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+    margin-bottom: 8px;
+}
+thead th {
+    background: var(--surface2);
+    color: var(--text2);
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.04em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+tbody tr:nth-child(even) { background: var(--surface); }
+tbody tr:nth-child(odd) { background: var(--bg); }
+tbody td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+tbody tr:last-child td { border-bottom: none; }
+
+/* Rubric score bar */
+.score-bar { display: inline-flex; align-items: center; gap: 6px; }
+.score-fill {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--danger), var(--warn), var(--ok));
+}
+.score-track { width: 60px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+
+/* HITL age coloring */
+.age-fresh { color: var(--ok); }
+.age-warn { color: var(--warn); }
+.age-old { color: var(--danger); }
+
+/* Tier table */
+.tier-haiku { color: #a8d8a8; }
+.tier-sonnet { color: var(--accent); }
+.tier-opus { color: var(--accent2); }
+.tier-unknown { color: var(--muted); }
+
+code { font-family: var(--mono); font-size: 0.83em; color: #c8ceef; background: #1e2130; padding: 1px 4px; border-radius: 3px; }
+
+hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+.footer { color: var(--muted); font-size: 0.75rem; text-align: center; margin-top: 32px; }
+.section-intro { color: var(--text2); font-size: 0.83rem; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Xenia Agent-Manager Dashboard</h1>
+    <div class="header-meta">
+      Period: <strong>Last 30 days</strong> &nbsp;·&nbsp;
+      From: <code>2026-05-05 14:22 UTC</code> &nbsp;·&nbsp;
+      Generated: <code>2026-06-04 14:22 UTC</code>
+    </div>
+  </div>
+  <div>
+    <span class="badge badge-accent">wf_xenia · support-kpi-monitoring</span>
+  </div>
+</div>
+
+<div class="partial-banner">
+  &#9888; PARTIAL DATA: Cost coverage is 0% of resolved events.
+  <span>Cost-per-resolution figures are estimates only.
+  Anti-Goodhart Rule 5: partial instrumentation is NEVER read as complete.
+  A missing <code>cost_usd</code> means "no data for this run", not zero cost.</span>
+</div>
+<h2>Containment &#43; Quality Pair (Anti-Goodhart Rule 1)</h2><p class="section-intro">
+Containment is <em>never shown alone</em>.
+High containment with rising false-deflection is a <strong>worse state</strong> than lower containment.
+These two metrics are always read together — a resolved ticket that shouldn't have been resolved harms the customer.
+</p>
+<div class="containment-pair">
+  <div class="metric-card pair-left">
+    <div class="pair-label">&#8645; Containment Rate</div>
+    <div class="metric-label">Runs ending RESOLVED without human handoff</div>
+    <div class="metric-value warn">0.0%</div>
+    <div class="metric-sub">0 resolved / 1 total runs</div>
+  </div>
+  <div class="metric-card pair-right">
+    <div class="pair-label">&#9888; False-Deflection Rate (quality check)</div>
+    <div class="metric-label">Themis no-false-deflection 0-scores / judged artifacts</div>
+    <div class="metric-value ok">0.0%</div>
+    <div class="metric-sub">Based on 1 rubric dim checks</div>
+  </div>
+</div>
+<div class="anti-goodhart-note">
+  Anti-Goodhart Rule 1: Containment above target with rising false-deflection or complaint signals is a
+  <strong>worse state</strong> than lower containment — the pair is read together, always.
+  A containment rate that looks healthy must be validated against the quality pair before reporting upward.
+</div>
+<h2>KPI Summary</h2><div class="kpi-grid">
+<div class="kpi-card">
+  <div class="metric-label">FCR (First-Contact Resolution)</div>
+  <div class="metric-value neutral">N/A</div>
+  <div class="metric-sub">0/0 eligible runs
+  <span class="badge badge-muted" style="margin-left:4px">proxy</span></div>
+</div>
+<div class="kpi-card">
+  <div class="metric-label">SLA Attainment</div>
+  <div class="metric-value ok">100.0%</div>
+  <div class="metric-sub">ok:3 / warn:0 / breach:0 (of 3 events)</div>
+</div>
+<div class="kpi-card">
+  <div class="metric-label">AHT Proxy (median first response)</div>
+  <div class="metric-value neutral">1.5m</div>
+  <div class="metric-sub">Mean: 1.5m &nbsp;·&nbsp; n=1
+  <span class="badge badge-muted" style="margin-left:4px">proxy</span></div>
+</div>
+<div class="kpi-card">
+  <div class="metric-label">Grounding Rate</div>
+  <div class="metric-value warn">0.0%</div>
+  <div class="metric-sub">Fully cited drafts / drafts with claims (n=1)</div>
+</div>
+<div class="kpi-card">
+  <div class="metric-label">Escalation Precision</div>
+  <div class="metric-value warn">0.0%</div>
+  <div class="metric-sub">0 warranted / 1 total escalations</div>
+</div>
+<div class="kpi-card">
+  <div class="metric-label">Escalation Recall</div>
+  <div class="metric-value neutral">N/A</div>
+  <div class="metric-sub">Requires bounced-resolution signal (not yet instrumented)</div>
+</div></div><h2>Cost per Resolution</h2>
+<div class="cost-card">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="metric-label">Mean Cost / Resolved Event</div>
+      <div class="metric-value neutral" style="font-size:1.4rem">N/A</div>
+    </div>
+    <div style="margin-left:auto">
+      <div class="metric-label">Coverage N%</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--warn)">
+        0%
+      </div>
+      <div class="metric-sub">0 of 1 resolved events have cost data</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:16px">Per-Tier Breakdown (Anti-Goodhart Rule 6: tier laundering detection)</h3>
+  <table>
+    <thead><tr>
+      <th>Tier</th><th>Resolved Events (w/ cost)</th>
+      <th>All Events (w/ cost)</th><th>Avg Cost / Resolved</th>
+      <th>Total Cost (all events)</th>
+    </tr></thead><tbody>
+    <tr>
+      <td><span class="tier-sonnet">sonnet</span></td>
+      <td>0</td>
+      <td>1</td>
+      <td>N/A</td>
+      <td>$0.0330</td>
+    </tr></tbody></table></div>
+<div class="partial-banner" style="margin-top:-4px">
+  Cost coverage 0% &lt; 80% threshold.
+  <span>Any aggregation over fewer than 80% coverage carries a conspicuous "partial data" label per SKILL.md Rule 5.</span>
+</div><h2>KPI by Intent Class</h2>
+<table>
+  <thead><tr>
+    <th>Intent</th><th>Total</th><th>Resolved</th><th>Escalated</th>
+    <th>Containment</th><th>False-Deflection Score</th>
+    <th>SLA OK</th><th>SLA Breach</th><th>Avg Cost</th>
+  </tr></thead><tbody>
+  <tr>
+    <td><strong>billing</strong></td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>N/A</td>
+    <td><span class="badge badge-muted" style="font-size:0.7rem">—</span></td>
+    <td>1</td>
+    <td>0</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><strong>defect</strong></td>
+    <td>1</td>
+    <td>0</td>
+    <td>1</td>
+    <td>0.0%</td>
+    <td><span class="badge badge-ok" style="font-size:0.7rem">0/1 0-scores</span></td>
+    <td>2</td>
+    <td>0</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><strong>general</strong></td>
+    <td>0</td>
+    <td>0</td>
+    <td>0</td>
+    <td>N/A</td>
+    <td><span class="badge badge-muted" style="font-size:0.7rem">—</span></td>
+    <td>0</td>
+    <td>0</td>
+    <td>$0.0330</td>
+  </tr></tbody></table><h2>SLA Attainment by Severity</h2><p class="section-intro">SLA targets: P1 &lt;60 min first response · P2 &lt;4 h · P3 &lt;1 bd · P4 &lt;2 bd</p>
+<table>
+  <thead><tr><th>Severity</th><th>OK</th><th>Warn</th><th>Breach</th><th>Attainment</th></tr></thead>
+  <tbody>
+  <tr>
+    <td><strong>P2</strong></td>
+    <td>2</td><td>0</td>
+    <td><span class="badge badge-ok">0</span></td>
+    <td>100.0%</td>
+  </tr>
+  <tr>
+    <td><strong>P3</strong></td>
+    <td>1</td><td>0</td>
+    <td><span class="badge badge-ok">0</span></td>
+    <td>100.0%</td>
+  </tr></tbody></table><h2>Worst 3 Runs by Rubric Score</h2>
+<table>
+  <thead><tr>
+    <th>Ticket</th><th>Terminal State</th><th>Intent</th>
+    <th>Composite Score</th><th>Rubric Details</th><th>Trace Ref</th>
+  </tr></thead><tbody>
+  <tr>
+    <td><code>TICKET-SMOKE-001</code></td>
+    <td>ESCALATED_TO_HUMAN</td>
+    <td>defect</td>
+    <td><span class="score-bar"><span class="score-track"><span class="score-fill" style="width:89%;background:var(--ok)"></span></span><span style="color:var(--ok);font-weight:600">2.67</span></span></td>
+    <td><div style="margin-bottom:3px"><span class="badge badge-ok" style="font-size:0.65rem">PASS</span> <code style="font-size:0.75em">empathy-tone-required</code> <span style="color:var(--muted);font-size:0.72em">[emotion-acknowledgement:3, tone-appropriateness:3, no-manipulation:3, clarity:2]</span></div><div style="margin-bottom:3px"><span class="badge badge-ok" style="font-size:0.65rem">PASS</span> <code style="font-size:0.75em">support-deflection-quality@1</code> <span style="color:var(--muted);font-size:0.72em">[correct-resolution:2, grounded-in-kb:2, no-false-deflection:3, escape-hatch-offered:3]</span></div><div style="margin-bottom:3px"><span class="badge badge-ok" style="font-size:0.65rem">PASS</span> <code style="font-size:0.75em">kb-citation-grounding</code> <span style="color:var(--muted);font-size:0.72em">[fail-closed-honesty:3]</span></div><div style="margin-bottom:3px"><span class="badge badge-ok" style="font-size:0.65rem">PASS</span> <code style="font-size:0.75em">redaction-compliance</code></div></td>
+    <td><code style="font-size:0.72em">hearth\output\tickets\TICKET-SMOKE-001-2026-06-03.md</code></td>
+  </tr></tbody></table><h2>Open HITL Items</h2><p class="section-intro">2 open escalation(s) awaiting human resolution.</p>
+<table>
+  <thead><tr>
+    <th>Ticket ID</th><th>Severity</th><th>Category/Intent</th>
+    <th>Agent</th><th>Escalated At</th><th>Age</th>
+  </tr></thead><tbody>
+  <tr>
+    <td><code>TICKET-SMOKE</code></td>
+    <td>P2</td>
+    <td>defect</td>
+    <td>hestia</td>
+    <td><code style="font-size:0.78em">2026-06-03T22:33:17.977Z</code></td>
+    <td><span class="age-warn">15h ago</span></td>
+  </tr>
+  <tr>
+    <td><code>TICKET-SMOKE-001</code></td>
+    <td>P2</td>
+    <td>defect</td>
+    <td>hestia</td>
+    <td><code style="font-size:0.78em">2026-06-03T22:33:44.079Z</code></td>
+    <td><span class="age-warn">15h ago</span></td>
+  </tr></tbody></table><h2>KB Gap Velocity</h2>
+<div class="kpi-grid" style="grid-template-columns:repeat(3,minmax(140px,1fr))">
+  <div class="kpi-card">
+    <div class="metric-label">Gaps Filed</div>
+    <div class="metric-value neutral">0</div>
+    <div class="metric-sub">kb-gaps events in period</div>
+  </div>
+  <div class="kpi-card">
+    <div class="metric-label">Gaps Closed</div>
+    <div class="metric-value neutral">0</div>
+    <div class="metric-sub">closed gaps in period</div>
+  </div>
+  <div class="kpi-card">
+    <div class="metric-label">Net Velocity</div>
+    <div class="metric-value ok">+0</div>
+    <div class="metric-sub">filed minus closed (positive = accumulating)</div>
+  </div>
+</div>
+<h2>Event Summary (Period)</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div>
+<h3>Events by Kind</h3>
+<table>
+  <thead><tr><th>Kind</th><th>Count</th></tr></thead><tbody><tr><td><code>xenia.escalated</code></td><td>2</td></tr><tr><td><code>xenia.output_written</code></td><td>2</td></tr><tr><td><code>xenia.ticket_resolved</code></td><td>1</td></tr></tbody></table></div><div>
+<h3>Events by Agent</h3>
+<table>
+  <thead><tr><th>Agent</th><th>Count</th></tr></thead><tbody><tr><td>hestia</td><td>3</td></tr><tr><td>test-agent</td><td>2</td></tr></tbody></table></div></div><hr>
+<div class="footer">
+  Xenia Agent-Manager Dashboard &mdash; Generated 2026-06-04 14:22 UTC &mdash;
+  stdlib-only generator (no external deps) &mdash; no fabricated data &mdash;
+  support-kpi-monitoring v1 &mdash; Anti-Goodhart rules enforced
+</div>
+</body></html>

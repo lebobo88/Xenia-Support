@@ -5,13 +5,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo Xenia hearth -- 9 heads + Echo loaded (Xun converts Kan into Dui)",
+            "command": "echo Xenia hearth -- 10 heads + Echo loaded (Xun converts Kan into Dui)",
             "timeout": 5
           }
         ]
       }
     ],
     "PreToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -File .claude/hooks/pre-dispatch-budget.ps1",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "Write|mcp__.*xenia.*output_write",
         "hooks": [

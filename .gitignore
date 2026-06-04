@@ -1,3 +1,6 @@
 
 hearth/kb/.kb-index.db
 hearth/kb/.kb-index.db-*
+
+# Runtime dispatch-budget counters (per-run, not versioned)
+hearth/progress/.budget-*.json
