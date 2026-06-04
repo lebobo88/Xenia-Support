@@ -31,7 +31,11 @@ heads:
       - ticket-triage-classification
       - portable-context-token
     tools:
-      - ticket-system-bridge
+      - xenia-tickets.create
+      - xenia-tickets.get
+      - xenia-tickets.list
+      - xenia-tickets.comment
+      - xenia-tickets.update_fields
       - xenia.output.write
 
   - mythic: Metis
@@ -45,7 +49,9 @@ heads:
       - freshness-aware-retrieval
       - kb-gap-detection
     tools:
-      - kb-rag
+      - xenia-kb.search
+      - xenia-kb.get
+      - xenia-kb.list
       - xenia.output.write
 
   - mythic: Asclepius
@@ -60,7 +66,8 @@ heads:
       - kb-rag-citation
     tools:
       - telemetry-grep
-      - kb-rag
+      - xenia-kb.search
+      - xenia-kb.get
       - xenia.output.write
 
   - mythic: Harmonia
@@ -86,7 +93,10 @@ heads:
       - policy-compliance-awareness
       - support-kpi-monitoring
     tools:
-      - ticket-system-bridge
+      - xenia-tickets.get
+      - xenia-tickets.list
+      - xenia-tickets.comment
+      - xenia-tickets.recommend
       - xenia.output.write
       - eights.memory.remember
 
@@ -101,7 +111,12 @@ heads:
       - portable-context-token
       - policy-compliance-awareness
     tools:
-      - ticket-system-bridge
+      - xenia-tickets.get
+      - xenia-tickets.comment
+      - xenia-tickets.update_fields
+      - xenia-tickets.send_response
+      - xenia-tickets.recommend
+      - xenia-tickets.execute_approved
       - xenia.output.write
       - eights.memory.remember
 

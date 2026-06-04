@@ -6,6 +6,11 @@ tools:
   - Read
   - Write
   - mcp__hydra_gateway__xenia__xenia_output_write
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_create
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_get
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_list
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_comment
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_update_fields
 disallowedTools:
   - Bash
   - mcp__hydra_gateway__eights__eights_memory_add

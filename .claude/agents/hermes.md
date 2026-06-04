@@ -9,6 +9,12 @@ tools:
   - mcp__hydra_gateway__xenia__xenia_output_write
   - mcp__hydra_gateway__xenia__xenia_output_read
   - mcp__hydra_gateway__eights__eights_memory_add
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_get
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_comment
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_update_fields
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_send_response
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_recommend
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_execute_approved
 maxTurns: 30
 context:
   - "hearth/specs/support-constitution.md"

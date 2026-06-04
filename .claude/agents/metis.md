@@ -7,6 +7,9 @@ tools:
   - Grep
   - Glob
   - mcp__hydra_gateway__xenia__xenia_output_write
+  - mcp__hydra_gateway__xenia_kb__xenia_kb_search
+  - mcp__hydra_gateway__xenia_kb__xenia_kb_get
+  - mcp__hydra_gateway__xenia_kb__xenia_kb_list
 disallowedTools:
   - Bash
 maxTurns: 25

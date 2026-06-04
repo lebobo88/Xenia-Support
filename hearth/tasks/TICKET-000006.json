@@ -1,0 +1,23 @@
+{
+  "ticket_id": "000006",
+  "status": "open",
+  "priority": "P3",
+  "intent": null,
+  "customer_ref": "customer:e5bfe001ab",
+  "subject": "Test PII in body",
+  "created_at": "2026-06-04T13:37:44.474412+00:00",
+  "updated_at": "2026-06-04T13:37:44.474412+00:00",
+  "sla": {
+    "first_response_due": "2026-06-04T21:37:44.474432+00:00",
+    "breached": false
+  },
+  "history": [
+    {
+      "ts": "2026-06-04T13:37:44.474412+00:00",
+      "actor": "customer:e5bfe001ab",
+      "kind": "created",
+      "body": "My SSN is 123-45-6789 and credit card 4111111111111111 please help"
+    }
+  ],
+  "recommendations": []
+}

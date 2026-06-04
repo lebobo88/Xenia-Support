@@ -7,6 +7,10 @@ tools:
   - Agent
   - mcp__hydra_gateway__xenia__xenia_output_write
   - mcp__hydra_gateway__eights__eights_memory_add
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_get
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_list
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_comment
+  - mcp__hydra_gateway__xenia_tickets__xenia_tickets_recommend
 disallowedTools:
   - Bash
 maxTurns: 25

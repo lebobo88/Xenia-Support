@@ -1,0 +1,23 @@
+{
+  "ticket_id": "000003",
+  "status": "open",
+  "priority": "P4",
+  "intent": "how-to",
+  "customer_ref": "customer:a3f1b209",
+  "subject": "How do I embed a dashboard in our internal wiki?",
+  "created_at": "2026-06-04T13:30:01.630040+00:00",
+  "updated_at": "2026-06-04T13:30:01.630040+00:00",
+  "sla": {
+    "first_response_due": "2026-06-05T05:30:01.630064+00:00",
+    "breached": false
+  },
+  "history": [
+    {
+      "ts": "2026-06-04T13:30:01.630040+00:00",
+      "actor": "customer:a3f1b209",
+      "kind": "created",
+      "body": "Hi, I am on the Pro plan and I would like to embed one of our Lumenboard dashboards into our Confluence page. I found the share menu but I only see a link option, not an embed code. Is the iframe embed available on Pro, or is it Team-only?"
+    }
+  ],
+  "recommendations": []
+}
