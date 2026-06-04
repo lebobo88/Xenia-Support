@@ -67,11 +67,13 @@ classification:
   explicit_human_request: <bool>
   regulatory_flag: <bool>         # jurisdiction or sector mandates human review
   monetary_action: <bool>         # refund/credit/plan-change/cancel implied
-  route: <knowledge-answer | tech-diagnosis | deescalation-tone | retention-success | escalation-handoff>
+  route: <knowledge-answer | tech-diagnosis | deescalation-tone | retention-success | billing-account | escalation-handoff>
 ```
 
 Routing rules (constitution Article I overrides everything):
 `explicit_human_request || regulatory_flag` → `escalation-handoff` immediately.
+`intent == billing` → `billing-account` (Plutus); covers invoice/charge, plan-comparison,
+payment-failure, proration, refund/credit eligibility, dunning (see ticket-triage-classification skill).
 `monetary_action` → the answering head drafts recommend-only; Hermes owns execution.
 `sentiment == hostile || sentiment_sustained` → `deescalation-tone` wraps the answer.
 

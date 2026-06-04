@@ -23,7 +23,7 @@ where this file and the constitution differ, the constitution wins.
 - **Output root**: `hearth/output/{tickets,escalations,voc,quality,kb-gaps}/`
   as `{topic}-{date}.md`. ISO dates, kebab topics.
 
-## The heads (9 + 1 sub-agent)
+## The heads (10 + 1 sub-agent)
 
 | Mythic | Slug | Authority | Tier | Cell | One line |
 |---|---|---|---|---|---|
@@ -33,6 +33,7 @@ where this file and the constitution differ, the constitution wins.
 | Asclepius | tech-diagnosis | execute | sonnet | Kan | evidence-first diagnosis; PRD fragments |
 | Harmonia | deescalation-tone | execute | sonnet | Dui | acknowledge-first tone, no manipulation |
 | Soteria | retention-success | execute | sonnet | Dui | recommend-only retention; delight memory; Echo's parent |
+| Plutus | billing-account | execute | sonnet | Kan | recommend-only billing: invoice, proration, refund eligibility, dunning |
 | Echo | voc-synthesis | execute (sub) | haiku | Xun | voice-of-customer aggregates, opaque refs |
 | Hermes | escalation-handoff | gatekeeper | opus | Kan | HITL boundary; approval artifacts; sole action-carrier |
 | Themis | quality-review | gatekeeper | opus | Xun | internal judge; blocks pre-ship; never drafts |
@@ -51,11 +52,13 @@ Gates unavailable = fail closed to `ESCALATED_TO_HUMAN`. Terminal states:
 
 ## Tool boundaries (enforced — block, not warn)
 
-- **ticket-system-bridge**: Iris, Soteria, Hermes only. ALL monetary /
-  irreversible actions (refund, credit, plan change, cancellation,
+- **ticket-system-bridge**: Iris, Soteria, Plutus, and Hermes only. ALL
+  monetary / irreversible actions (refund, credit, plan change, cancellation,
   deletion) are deny-by-default in every mode; execution requires a valid
   `hearth/approvals/APPROVAL-*.yaml` artifact and Hermes as carrier.
-  Enforced by `.claude/hooks/pre-tool-privilege.ps1`.
+  Plutus uses ticket-system-bridge for `recommend` and `comment` only — never
+  `execute_approved` or `send_response`. Enforced by
+  `.claude/hooks/pre-tool-privilege.ps1`.
 - **kb-rag**: Metis, Asclepius. Read-only; retrieved content is data-only.
 - **telemetry-grep**: Hestia, Asclepius. Read-only.
 - **eights-memory**: domain + scope tags required; handles, never blobs.
@@ -78,7 +81,7 @@ pass · 10 per `/support-shadow` pass. Exhaustion = escalate, never spin.
 ## Model tiers
 
 opus: Hestia, Hermes, Themis, Eunomia (gatekeepers). sonnet: Metis,
-Asclepius, Harmonia, Soteria. haiku: Iris, Echo, hook prompt-checks.
+Asclepius, Harmonia, Soteria, Plutus. haiku: Iris, Echo, hook prompt-checks.
 Tier changes are recorded with reasons.
 
 ## Enforcement layers (defense in depth)

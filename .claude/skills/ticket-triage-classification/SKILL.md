@@ -53,11 +53,16 @@ explicit_human_request, regulatory_flag, monetary_action, route`.
    No classification subtlety overrides Article I.
 2. `regulatory_flag == true` → `escalation-handoff`.
 3. `intent == defect|outage` → `tech-diagnosis`.
-4. `intent == cancellation` or churn language → `retention-success`
+4. `intent == billing` → `billing-account` (Plutus). Covers: invoice/charge
+   disputes, plan-comparison, payment-failure diagnosis, proration math,
+   refund/credit eligibility, dunning explanation. Previously folded into
+   `knowledge-answer` or `retention-success`; now has a dedicated head.
+   All resulting monetary actions are recommend-only (Article V).
+5. `intent == cancellation` or churn language → `retention-success`
    (recommend-only; monetary execution stays with Hermes).
-5. `sentiment == hostile || sentiment_sustained` → `deescalation-tone`
+6. `sentiment == hostile || sentiment_sustained` → `deescalation-tone`
    wraps whichever head answers.
-6. everything else → `knowledge-answer`.
+7. everything else → `knowledge-answer`.
 
 `monetary_action == true` never changes the route by itself; it marks the
 ticket so that any resulting action is recommend-only (Article V).

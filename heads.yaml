@@ -1,4 +1,4 @@
-# Xenia — canonical head registry (9 heads + 1 sub-agent)
+# Xenia — canonical head registry (10 heads + 1 sub-agent)
 # The crown: Hestia leads; Hermes, Themis, Eunomia gate; the rest execute.
 # Manifesto: Xun (gentle penetration) converts Kan (risk) into Dui (delight).
 
@@ -99,6 +99,24 @@ heads:
       - xenia-tickets.recommend
       - xenia.output.write
       - eights.memory.remember
+
+  - mythic: Plutus
+    slug: billing-account
+    authority: execute
+    model_tier: sonnet
+    cell: risk        # Kan — money is the abyss the covenant most fears mishandling
+    scope: "Billing and account: invoice/charge explanation, plan-comparison, payment-failure diagnosis, proration math, refund/credit eligibility (recommend-only, policy-cited); never executes"
+    skills:
+      - policy-compliance-awareness
+      - kb-rag-citation
+      - tool-execution-standards
+    tools:
+      - xenia-kb.search
+      - xenia-kb.get
+      - xenia-tickets.get
+      - xenia-tickets.comment
+      - xenia-tickets.recommend
+      - xenia.output.write
 
   - mythic: Hermes
     slug: escalation-handoff

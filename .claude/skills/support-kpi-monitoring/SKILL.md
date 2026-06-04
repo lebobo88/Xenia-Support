@@ -39,7 +39,7 @@ DecisionRecords, with explicit guards against metric gaming.
 | **Escalation recall** | warranted escalations caught / (caught + missed: bounced resolutions, complaint reopens) | reopen + complaint signals |
 | **False-deflection rate** | Themis `no-false-deflection` 0-scores / judged artifacts | verdict artifacts |
 | **Grounding rate** | drafts fully cited / drafts with factual claims | verdict artifacts |
-| **Cost per resolution** | model + tool cost per terminal state, by tier | cost records (Hydra: governance.record_cost) |
+| **Cost per resolution** | model + tool cost per terminal state, by tier | `cost_usd`, `tokens`, `model_tier` fields on `xenia.ticket_resolved` events in `events.jsonl`; supplemented by Hydra `governance.record_cost`. Coverage rule: cost data present on N% of resolved events; **partial instrumentation is NEVER read as complete** — a missing `cost_usd` (null) means "no data for this run", not "zero cost". Report N alongside the KPI value. |
 | **KB gap velocity** | gaps filed vs. gaps closed per period | kb-gaps outputs |
 
 ## Anti-Goodhart rules
@@ -53,6 +53,19 @@ DecisionRecords, with explicit guards against metric gaming.
    are not "overhead to optimize"; a fast unjudged answer is a defect.
 4. **CSAT-proxy honesty.** Without a real survey channel, sentiment
    trajectory at close is a proxy and is labeled as one.
+5. **Cost coverage is always reported.** When computing cost-per-resolution,
+   compute N = (events with non-null `cost_usd`) / (total resolved events).
+   Partial instrumentation is NEVER read as complete: a null `cost_usd`
+   means "no cost data for this run", not "zero cost". The dashboard MUST
+   display N% alongside the cost figure. Any aggregation over fewer than
+   80% coverage MUST carry a conspicuous "partial data" label.
+6. **Tier laundering is now detectable.** The `model_tier` field on each
+   event records the actual tier used. Silent model downgrades (previously
+   allowed by `loop-budget-control` without surfacing to KPIs) now leave
+   a `model_tier` trail. Cost-per-resolution breakdowns MUST be segmented
+   by `model_tier`; an aggregate that merges tiers without noting the mix
+   is misleading. Any run where `model_tier` differs from the squad's
+   configured tier for that agent is flagged as a potential cost-hiding event.
 
 ## The Agent-Manager dashboard contract
 

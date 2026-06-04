@@ -25,9 +25,14 @@ absent degrades to local files, never to failure.
   already ingested).
 - **Event schema** (stable contract — bump consciously):
   `{event_id, ts, kind, agent, phase, ticket_id, severity, category,
-  path, sla_state}` with `kind` in `xenia.ticket_created |
-  xenia.ticket_resolved | xenia.escalated | xenia.voc_report |
-  xenia.output_written`.
+  path, sla_state, tokens, cost_usd, model_tier}` with `kind` in
+  `xenia.ticket_created | xenia.ticket_resolved | xenia.escalated |
+  xenia.voc_report | xenia.output_written`.
+  The three cost fields (`tokens`, `cost_usd`, `model_tier`) are
+  **nullable-additive** (prop_36000c5c, 2026-06-04): they are always
+  present in the JSON object but may be `null` when the harness does not
+  expose the corresponding env vars. The bridge ingests both the null and
+  populated forms without change — no bridge update required.
 
 ## Cell mapping (the trigram manifesto, compiled)
 

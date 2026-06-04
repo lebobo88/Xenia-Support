@@ -22,6 +22,13 @@
 #     ticket_id  - parsed from path when present, else null
 #     path       - pack-relative output path
 #     sla_state  - ok | warn | breach | n/a (best-effort from body markers)
+#     tokens     - {in:<int>,out:<int>} | null  (CLAUDE_HOOK_TOKENS_IN/OUT)
+#     cost_usd   - <number> | null  (CLAUDE_HOOK_COST_USD explicit override,
+#                  or derived from tokens+tier via built-in rate table,
+#                  else null)
+#     model_tier - opus | sonnet | haiku | null  (CLAUDE_HOOK_MODEL_TIER)
+#   The three cost fields are nullable-additive: absent env vars → null.
+#   The bridge ingests with or without them (no bridge change required).
 #
 #   Exit codes: always 0 (non-blocking telemetry; failures degrade silently
 #   to stderr so a telemetry outage can never block customer work).
@@ -103,6 +110,54 @@ try {
     if ($body -match '(?i)outcome:\s*delight') { $outcome = 'delight' }
     elseif ($body -match '(?i)terminal_state:\s*RESOLVED') { $outcome = 'resolved' }
 
+    # ---------- cost / token fields (prop_36000c5c: per-resolution cost) --------
+    # Built-in rate table (approx public list pricing per 1M tokens, USD).
+    # These are APPROXIMATE and are OVERRIDABLE via CLAUDE_HOOK_COST_USD.
+    # Update if Anthropic list prices change materially.
+    $rateTable = @{
+        'opus'    = @{ in = 15.0;  out = 75.0  }   # $15/$75 per 1M in/out
+        'sonnet'  = @{ in = 3.0;   out = 15.0  }   # $3/$15  per 1M in/out
+        'haiku'   = @{ in = 0.80;  out = 4.0   }   # $0.80/$4 per 1M in/out
+    }
+
+    # model_tier: opus | sonnet | haiku | null
+    $modelTier = $null
+    if ($env:CLAUDE_HOOK_MODEL_TIER) {
+        $t = $env:CLAUDE_HOOK_MODEL_TIER.ToLower().Trim()
+        if ($rateTable.ContainsKey($t)) { $modelTier = $t }
+    }
+
+    # tokens: {in, out} | null
+    $tokensField = $null
+    $tokensIn  = $null
+    $tokensOut = $null
+    if ($env:CLAUDE_HOOK_TOKENS_IN -and $env:CLAUDE_HOOK_TOKENS_OUT) {
+        $parsedIn  = 0; $parsedOut = 0
+        if ([int]::TryParse($env:CLAUDE_HOOK_TOKENS_IN,  [ref]$parsedIn) -and
+            [int]::TryParse($env:CLAUDE_HOOK_TOKENS_OUT, [ref]$parsedOut)) {
+            $tokensIn  = $parsedIn
+            $tokensOut = $parsedOut
+            $tokensField = [ordered]@{ 'in' = $tokensIn; 'out' = $tokensOut }
+        }
+    }
+
+    # cost_usd: explicit override wins; else derive from tokens+tier; else null
+    $costUsd = $null
+    if ($env:CLAUDE_HOOK_COST_USD) {
+        $parsedCost = 0.0
+        if ([double]::TryParse($env:CLAUDE_HOOK_COST_USD,
+                [System.Globalization.NumberStyles]::Any,
+                [System.Globalization.CultureInfo]::InvariantCulture,
+                [ref]$parsedCost)) {
+            $costUsd = [math]::Round($parsedCost, 9)
+        }
+    } elseif ($tokensIn -ne $null -and $tokensOut -ne $null -and $modelTier -ne $null) {
+        $rates = $rateTable[$modelTier]
+        $costUsd = [math]::Round(
+            ($tokensIn  / 1e6 * $rates.in) +
+            ($tokensOut / 1e6 * $rates.out), 9)
+    }
+
     # ---------- build + append event (single line, atomic append) ----------------
     $rand = -join ((48..57) + (97..102) | Get-Random -Count 4 | ForEach-Object { [char]$_ })
     $evt = [ordered]@{
@@ -118,6 +173,9 @@ try {
         outcome      = $outcome
         path         = $normPath
         sla_state    = $slaState
+        tokens       = $tokensField
+        cost_usd     = $costUsd
+        model_tier   = $modelTier
     }
 
     $progressDir = Join-Path $root 'hearth/progress'

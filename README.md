@@ -1,6 +1,6 @@
 # Xenia — The Customer-Support Crown
 
-**Status:** active · **Agents:** 10 · **Skills:** 14 · **Commands:** 6 ·
+**Status:** active · **Agents:** 11 · **Skills:** 14 · **Commands:** 6 ·
 **Rubrics:** 6 · **Hooks:** 3
 
 > *Xenia* is the ancient Greek covenant of guest and host — the sacred
@@ -16,7 +16,7 @@
 
 ## What is Xenia?
 
-A 10-agent support organization grounded in current industry research on
+An 11-agent support organization grounded in current industry research on
 production multi-agent support systems (the research dossier ships in
 this repo): hierarchical orchestration with deterministic control flow,
 KB-grounded answers with mandatory citations, layered HITL escalation,
@@ -33,6 +33,7 @@ crawl→walk→run deployment discipline.
 | **Asclepius** | tech-diagnosis | execute | sonnet | evidence-first diagnosis; PRD fragments |
 | **Harmonia** | deescalation-tone | execute | sonnet | acknowledge-first tone; no manipulation |
 | **Soteria** | retention-success | execute | sonnet | recommend-only retention; delight memory |
+| **Plutus** | billing-account | execute | sonnet | recommend-only billing: invoice, proration, refund eligibility, dunning |
 | **Echo** | voc-synthesis | execute (sub) | haiku | voice-of-customer aggregates |
 | **Hermes** | escalation-handoff | gatekeeper | opus | HITL boundary; approval artifacts |
 | **Themis** | quality-review | gatekeeper | opus | internal judge; blocks pre-ship |
@@ -48,7 +49,8 @@ flowchart LR
     H --> A[Asclepius]
     H --> HA[Harmonia]
     H --> S[Soteria + Echo]
-    M & A & HA & S --> TH[Themis<br/>judge]
+    H --> P[Plutus]
+    M & A & HA & S & P --> TH[Themis<br/>judge]
     TH -->|pass| E[Eunomia<br/>clearance, always last]
     TH -->|2x fail| HE
     E -->|cleared| OUT[ship + DecisionRecord]
