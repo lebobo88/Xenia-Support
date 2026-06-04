@@ -1,0 +1,89 @@
+apiVersion: agentmesh/v1
+kind: SiblingManifest
+
+metadata:
+  id: xenia
+  displayName: "Xenia Customer Support"
+  version: "1.0.0"
+  description: "Customer support Claude Code pack. Thin MCP shim via Hydra xenia server."
+  # backendsKey: gateway flat-dict key.
+  # Source: ~/.hydra/backends.json — "xenia" entry.
+  backendsKey: "xenia"
+
+runtime:
+  type: python-langgraph
+  # Source: ~/.hydra/backends.json — "command": "python", "args": ["-m","mcp_servers.xenia"]
+  entrypoint: "mcp_servers/xenia/__main__.py"
+  cwd: "C:/AiAppDeployments/Hydra"
+  # Source: ~/.hydra/backends.json "xenia" env block.
+  env:
+    PYTHONPATH: "C:/AiAppDeployments/Hydra"
+    HYDRA_XENIA_ROOT: "C:/AiAppDeployments/Xenia"
+  healthProbe:
+    type: mcp-tool-call
+    # "xenia.ping" is the dedicated health probe.
+    # Source: Hydra/mcp_servers/xenia/server.py line 84 — "xenia.ping": ping
+    tool: "xenia.ping"
+    intervalMs: 20000
+    timeoutMs: 8000
+    failureThreshold: 3
+
+mcp:
+  endpoint:
+    type: stdio
+  # REAL tool names from Hydra/mcp_servers/xenia/server.py — _tool_handlers() return dict.
+  # Source: server.py lines 75-85.
+  tools:
+    - "xenia.skill.list"
+    - "xenia.skill.get"
+    - "xenia.command.list"
+    - "xenia.command.get"
+    - "xenia.agent.list"
+    - "xenia.agent.get"
+    - "xenia.output.write"
+    - "xenia.output.read"
+    - "xenia.ping"
+
+lifecycle:
+  startupDependencies:
+    - "hydra"
+  startTimeoutMs: 30000
+  gracefulShutdownMs: 10000
+  crashLoopBreaker:
+    threshold: 5
+    windowMs: 60000
+
+audit:
+  # "xenia.output.read" retrieves support output artifacts for audit stitching.
+  # Source: server.py line 83 — "xenia.output.read": output_read
+  # Formal audit federation routes through TheEights per governance precedence.
+  # See manifests/GOVERNANCE-ROUTING.md §xenia for details.
+  exportTool: "xenia.output.read"
+  dedupeKeyField: "relative"
+
+governance:
+  # Constitution: Xenia support-constitution.
+  # Verified to exist: C:/AiAppDeployments/Xenia/hearth/specs/support-constitution.md
+  # Runtime.cwd is C:/AiAppDeployments/Hydra.
+  # Path traversal from Hydra cwd:
+  # resolve(join("C:/AiAppDeployments/Hydra","../Xenia/hearth/specs/support-constitution.md"))
+  # = C:/AiAppDeployments/Xenia/hearth/specs/support-constitution.md (correct).
+  #
+  # VALIDATOR FRICTION NOTE (2026-06-04):
+  # The constitutionPath "../Xenia/hearth/specs/support-constitution.md" contains ".."
+  # which traverses above runtime.cwd. This is NOT blocked by the YAML injection
+  # safe-string checker (which only rejects \n\r:{}|># chars). It IS safe in the
+  # governance validator path because ManifestValidator.resolveConstitutionPath() uses
+  # Node.js path.resolve(path.join(cwd, constitutionPath)) which canonicalises the
+  # traversal correctly. The schema has no "no-dotdot" rule. If a future P9 validator
+  # adds a "must not cross above sibling root" rule, the cleanest fix is to extend the
+  # schema with an optional metadata.constitutionCwd override pointing to
+  # C:/AiAppDeployments/Xenia and set constitutionPath: "hearth/specs/support-constitution.md".
+  # See manifests/GOVERNANCE-ROUTING.md §validator-friction for the full analysis.
+  constitutionPath: "../Xenia/hearth/specs/support-constitution.md"
+  # xenia server has no dedicated attest tool.
+  # "xenia.ping" confirms MCP connectivity only.
+  # Formal constitution hash attestation routes through TheEights
+  # (eights.constitution.attest with consumer="xenia") per governance precedence.
+  # See manifests/GOVERNANCE-ROUTING.md §xenia.
+  attestTool: "xenia.ping"
