@@ -13,25 +13,29 @@ import { registerDataRoutes } from '../../server/routes.js';
 // Point file readers at the parity fixture
 process.env['HYDRA_XENIA_ROOT'] = resolve(__dirname, '..', 'fixtures');
 
+// PII planted in ticket free-text so the redaction assertions actually PROVE
+// the chokepoint runs on these endpoints (codex P3 finding).
+const PLANTED_EMAIL = 'angry.customer@example.com';
+
 function fakeClients(): BridgeClients {
-  const ticketsList = {
-    tickets: [
-      {
-        ticket_id: '000001',
-        status: 'open',
-        priority: 'P1',
-        intent: 'outage',
-        customer_ref: 'customer:2f8b6c44',
-        subject: 'prod down',
-        created_at: '2026-06-04T13:29:47Z',
-        sla: { first_response_due: '2000-01-01T00:00:00Z', breached: false },
-      },
-    ],
-    count: 1,
+  const ticketRow = {
+    ticket_id: '000001',
+    status: 'open',
+    priority: 'P1',
+    intent: 'outage',
+    customer_ref: 'customer:2f8b6c44',
+    subject: `prod down — reach me at ${PLANTED_EMAIL}`,
+    created_at: '2026-06-04T13:29:47Z',
+    sla: { first_response_due: '2000-01-01T00:00:00Z', breached: false },
+  };
+  const ticketFull = {
+    ...ticketRow,
+    history: [{ ts: '2026-06-04T13:30:00Z', actor: 'customer:2f8b6c44', kind: 'created', body: `call ${PLANTED_EMAIL}` }],
   };
   const mk = (payload: unknown): BridgeClients['tickets'] => ({
     connected: true,
-    async call() {
+    async call(tool: string) {
+      if (tool === 'xenia-tickets.get') return ticketFull as never;
       return payload as never;
     },
     async close() {
@@ -39,7 +43,7 @@ function fakeClients(): BridgeClients {
     },
   });
   return {
-    tickets: mk(ticketsList),
+    tickets: mk({ tickets: [ticketRow], count: 1 }),
     kb: mk({ docs: [{ doc_id: 'd1', title: 'T', as_of_date: '2026-01-01', topic_class: 'stable', stale: false }], doc_count: 1, index_fresh: true }),
   };
 }
@@ -103,9 +107,27 @@ describe('GET /api/hitl/aged', () => {
   });
 });
 
-describe('redaction still applies on data endpoints', () => {
-  it('no raw email survives any endpoint payload', async () => {
-    for (const path of ['/api/queue', '/api/kpi/snapshot', '/api/kb/health', '/api/hitl/aged']) {
+describe('GET /api/ticket/:id (path param)', () => {
+  it('the path form /api/ticket/<id> routes (not only ?id=)', async () => {
+    const res = await fetch(`${base}/api/ticket/000001`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { ticket: { ticket_id: string } };
+    expect(body.ticket.ticket_id).toBe('000001');
+  });
+});
+
+describe('redaction proven on data endpoints', () => {
+  it('planted email in ticket subject/history is scrubbed on queue + ticket', async () => {
+    // queue carries the planted email in subject; ticket carries it in history
+    for (const path of ['/api/queue', '/api/ticket/000001']) {
+      const text = await (await fetch(`${base}${path}`)).text();
+      expect(text, `${path} leaked the planted email`).not.toContain(PLANTED_EMAIL);
+      expect(text, `${path} did not run the scrubber`).toContain('[EMAIL]');
+    }
+  });
+
+  it('no raw email survives ANY endpoint payload', async () => {
+    for (const path of ['/api/queue', '/api/ticket/000001', '/api/kpi/snapshot', '/api/kb/health', '/api/hitl/aged']) {
       const text = await (await fetch(`${base}${path}`)).text();
       expect(text, `${path} leaked an email`).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
     }

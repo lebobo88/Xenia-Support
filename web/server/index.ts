@@ -147,7 +147,17 @@ export function createBridgeServer(clients: BridgeClients = defaultClients()): S
       return;
     }
     const url = new URL(req.url ?? '/', `http://${HOST}`);
-    const handler = ROUTES[url.pathname];
+    // Exact match first; then single-segment path params (e.g.
+    // /api/ticket/<id> dispatches to the '/api/ticket' handler, which reads
+    // the id from the path). Only registered prefixes are eligible.
+    let handler = ROUTES[url.pathname];
+    if (!handler) {
+      const slash = url.pathname.lastIndexOf('/');
+      if (slash > 0) {
+        const parent = url.pathname.slice(0, slash);
+        if (PATH_PARAM_ROUTES.has(parent)) handler = ROUTES[parent];
+      }
+    }
     if (!handler) {
       json(res, 404, { error: 'not found' });
       return;
@@ -167,6 +177,9 @@ export function createBridgeServer(clients: BridgeClients = defaultClients()): S
       });
   });
 }
+
+/** Routes that accept a trailing /<id> path param (dispatch to the base path). */
+const PATH_PARAM_ROUTES = new Set<string>(['/api/ticket']);
 
 /** Exported so P3 can register endpoints without touching the security shell. */
 export function registerRoute(path: string, handler: Handler): void {
