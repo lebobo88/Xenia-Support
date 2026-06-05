@@ -70,8 +70,13 @@ function isLoopbackHost(req: IncomingMessage): boolean {
   return host === '127.0.0.1' || host === 'localhost';
 }
 
-/** INVARIANT #3 — the single outbound writer; everything passes redactPayload. */
-function json(res: ServerResponse, status: number, body: unknown): void {
+/**
+ * INVARIANT #3 — the SINGLE outbound writer. Every payload (health, all P3
+ * route handlers, every error) leaves through here and passes redactPayload
+ * first. Route modules import this rather than calling res.end themselves, so
+ * there is exactly one res.end on the data path.
+ */
+export function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
     'cache-control': 'no-store',

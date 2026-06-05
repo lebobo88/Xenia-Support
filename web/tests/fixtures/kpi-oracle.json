@@ -1,0 +1,131 @@
+{
+  "aht_mean_mins": 15.0,
+  "aht_median_mins": 12.5,
+  "aht_samples": 4,
+  "containment_denom": 4,
+  "containment_num": 2,
+  "containment_rate": 0.5,
+  "cost_by_tier": {
+    "opus": [
+      0.4,
+      0.05,
+      0.55
+    ],
+    "sonnet": [
+      0.2
+    ]
+  },
+  "cost_coverage_denom": 4,
+  "cost_coverage_n": 4,
+  "cost_coverage_pct": 100.0,
+  "cost_per_resolution": 0.3,
+  "escalation_precision": 0.0,
+  "escalation_recall": null,
+  "false_deflection_checks": 4,
+  "false_deflection_rate": 0.25,
+  "fcr_eligible": 2,
+  "fcr_pass": 2,
+  "fcr_rate": 1.0,
+  "grounding_checks": 4,
+  "grounding_rate": 0.25,
+  "intent_stats": {
+    "billing": {
+      "cost_samples": [
+        0.4
+      ],
+      "escalated": 0,
+      "resolved": 1,
+      "sla_breach": 0,
+      "sla_ok": 1,
+      "total": 1
+    },
+    "defect": {
+      "cost_samples": [
+        0.55
+      ],
+      "escalated": 1,
+      "resolved": 0,
+      "sla_breach": 0,
+      "sla_ok": 2,
+      "total": 1
+    },
+    "how-to": {
+      "cost_samples": [
+        0.2,
+        0.05
+      ],
+      "escalated": 0,
+      "resolved": 1,
+      "sla_breach": 0,
+      "sla_ok": 1,
+      "total": 1
+    },
+    "outage": {
+      "cost_samples": [],
+      "escalated": 1,
+      "resolved": 0,
+      "sla_breach": 1,
+      "sla_ok": 0,
+      "total": 1
+    }
+  },
+  "kb_gap_closed": 0,
+  "kb_gap_filed": 1,
+  "open_hitl_ticket_ids": [
+    "T-102"
+  ],
+  "sla_attainment": 0.666667,
+  "sla_breach": 1,
+  "sla_by_severity": {
+    "P1": {
+      "breach": 1,
+      "ok": 0,
+      "warn": 0
+    },
+    "P2": {
+      "breach": 0,
+      "ok": 3,
+      "warn": 0
+    },
+    "P3": {
+      "breach": 0,
+      "ok": 1,
+      "warn": 0
+    },
+    "P4": {
+      "breach": 0,
+      "ok": 0,
+      "warn": 1
+    }
+  },
+  "sla_ok": 4,
+  "sla_total": 6,
+  "sla_warn": 1,
+  "tier_laundering_flags": [
+    {
+      "actual_tier": "opus",
+      "agent": "iris",
+      "expected_tier": "haiku"
+    }
+  ],
+  "total_escalations": 2,
+  "total_runs": 4,
+  "warranted_esc": 0,
+  "worst_3": [
+    {
+      "score": 0.333333,
+      "terminal_state": "ESCALATED_TO_HUMAN",
+      "ticket_id": "T-104"
+    },
+    {
+      "score": 2.0,
+      "terminal_state": "ESCALATED_TO_HUMAN",
+      "ticket_id": "T-102"
+    },
+    {
+      "score": 2.333333,
+      "terminal_state": "RESOLVED",
+      "ticket_id": "T-101"
+    }
+  ]
+}
