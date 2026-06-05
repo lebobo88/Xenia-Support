@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.xenia-bridge-port
+*.log

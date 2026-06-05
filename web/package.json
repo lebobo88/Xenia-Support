@@ -1,0 +1,39 @@
+{
+  "name": "@xenia/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Xenia Support Observatory — read-only observability web UI for the Xenia customer-support pack. Loopback-only bridge over the xenia-tickets / xenia-kb MCP servers + hearth file artifacts. Zero write tools by construction (support-constitution Art V; NB-6). Mirrors the TheEights/web + AgentMesh/web sibling pattern.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "bridge": "node --import tsx server/index.ts",
+    "typecheck": "tsc -b --noEmit && tsc -p tsconfig.server.json",
+    "test": "vitest run --config vitest.server.config.ts",
+    "test:ui": "vitest run --config vitest.ui.config.ts"
+  },
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^24.1.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^3.1.3"
+  }
+}

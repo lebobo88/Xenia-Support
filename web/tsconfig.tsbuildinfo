@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/components.tsx","./src/main.tsx","./src/usepolling.ts","./src/views/hitlaged.tsx","./src/views/kbhealth.tsx","./src/views/kpis.tsx","./src/views/queue.tsx","./src/views/ticketdetail.tsx","./tests/ui/setup.ts","./tests/ui/views.test.tsx"],"version":"5.9.3"}
