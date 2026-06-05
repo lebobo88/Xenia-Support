@@ -20,6 +20,7 @@ the browser. A test asserts the only `res.end` call site is `json()`.
 | Enums & flags | status, priority, intent, kind, topic_class, terminal_state, sla_state, seals, stale | Closed vocabularies |
 | Timestamps & numerics | created_at, first_response_due, KPI values, rubric dims, cost_usd, tokens | Non-personal |
 | Agent/actor system names | `hestia`, `system`, head names | Internal system identities (NOT operator email — which never appears in these artifacts) |
+| Approval `issued_by` | the `issued_by` field of `hearth/approvals/APPROVAL-*.yaml`, displayed ONLY in the ticket-detail approvals panel | Staff personal data kept deliberately for accountability (Art V requires a named human approver; NB-6 §7.2 records the operator's approval of this exemption). The scrub regexes are NOT applied to this one field; every other path treats email-shaped strings as scrub targets |
 
 ## Scrub (regex pass over every free-text field)
 
