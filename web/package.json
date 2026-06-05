@@ -17,6 +17,8 @@
     "test:ui": "vitest run --config vitest.ui.config.ts"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -1,25 +1,29 @@
 /**
- * web/server/index.ts — Xenia Support Observatory bridge (P0 scaffold).
+ * web/server/index.ts — Xenia Support Observatory bridge (P2 core).
  *
- * P0 ships the security skeleton only: loopback-only bind, Host-header
- * guard (DNS-rebinding defense), port-file convention, and a /api/health
- * stub. The MCP multiplex (xenia-tickets + xenia-kb), file readers,
- * redaction chokepoint, and KPI engine land in P2/P3 per the campaign plan.
+ * INVARIANTS (support-constitution + UI-SPEC, P1 HITL-approved):
+ *   #1 LOOPBACK ONLY — binds 127.0.0.1; Host-header guard (DNS-rebinding).
+ *   #2 READ-ONLY — WRITE_TOOLS frozen empty; every non-GET returns 405.
+ *   #3 REDACTION CHOKEPOINT — the single json() writer pipes every payload
+ *      through redactPayload() (Layer 4, Art IV §2). No other res.end exists
+ *      on the data path.
+ *   #4 WHITELIST — only the 7 read tools in server/whitelist.ts are callable;
+ *      tool names are server-side literals (the browser never names a tool).
  *
- * INVARIANTS (inherited from the sibling pattern + support-constitution):
- *   #1 LOOPBACK ONLY — binds 127.0.0.1, never 0.0.0.0 (Art IV / NB-6).
- *   #2 READ-ONLY — the write allowlist is EMPTY BY CONSTRUCTION in v1
- *      (Art V: approvals are YAML artifacts issued by a human, never a UI
- *      button). Tests assert emptiness.
- *   #3 REDACTION CHOKEPOINT — every outbound payload passes through
- *      redact() inside json() (Layer 4, Art IV §2). P0 stubs it as identity
- *      for the health endpoint only; P2 implements the scrub set.
+ * P2 surface: /api/health (bridge + children + estate file counts).
+ * P3 adds: /api/queue /api/ticket/:id /api/kpi/snapshot /api/kb/health /api/hitl/aged.
  */
 
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse, type Server } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { writeFileSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { XeniaMcpClient, xeniaRoot } from './xenia-client.js';
+import { allowTool, READ_TOOLS, WRITE_TOOLS } from './whitelist.js';
+import { redactPayload } from './redact.js';
+import { readEvents, readDecisionRecords, readApprovals } from './files.js';
+
+export { WRITE_TOOLS, READ_TOOLS };
 
 const HOST = '127.0.0.1'; // loopback only — NEVER 0.0.0.0
 const PREFERRED_PORT = Number(process.env['XENIA_OBS_BRIDGE_PORT'] ?? 8791);
@@ -28,12 +32,145 @@ const PORT_MAX_PROBES = 25;
 const PORT_FILE = fileURLToPath(new URL('../.xenia-bridge-port', import.meta.url));
 
 // ---------------------------------------------------------------------------
-// Write allowlist — EMPTY BY CONSTRUCTION (v1 read-only; see header)
+// MCP clients (lazy-connected singletons)
 // ---------------------------------------------------------------------------
-export const WRITE_TOOLS: readonly string[] = Object.freeze([]);
+
+export interface BridgeClients {
+  tickets: Pick<XeniaMcpClient, 'call' | 'close' | 'connected'>;
+  kb: Pick<XeniaMcpClient, 'call' | 'close' | 'connected'>;
+}
+
+function defaultClients(): BridgeClients {
+  return {
+    tickets: new XeniaMcpClient('xenia_tickets'),
+    kb: new XeniaMcpClient('xenia_kb'),
+  };
+}
+
+/** Whitelist-gated tool call — the ONLY path from HTTP to the MCP children. */
+export async function readTool(
+  clients: BridgeClients,
+  tool: string,
+  args: Record<string, unknown> = {},
+): Promise<unknown> {
+  if (!allowTool(tool)) {
+    throw Object.assign(new Error(`tool not whitelisted: ${tool}`), { httpStatus: 403 });
+  }
+  const client = tool.startsWith('xenia-kb.') ? clients.kb : clients.tickets;
+  return client.call(tool, args);
+}
 
 // ---------------------------------------------------------------------------
-// Port management (sibling pattern)
+// HTTP plumbing
+// ---------------------------------------------------------------------------
+
+function isLoopbackHost(req: IncomingMessage): boolean {
+  const host = (req.headers['host'] ?? '').split(':')[0]?.toLowerCase() ?? '';
+  return host === '127.0.0.1' || host === 'localhost';
+}
+
+/** INVARIANT #3 — the single outbound writer; everything passes redactPayload. */
+function json(res: ServerResponse, status: number, body: unknown): void {
+  res.writeHead(status, {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-store',
+    'x-content-type-options': 'nosniff',
+  });
+  res.end(JSON.stringify(redactPayload(body)));
+}
+
+// ---------------------------------------------------------------------------
+// Routes (P2: health only — P3 extends ROUTES)
+// ---------------------------------------------------------------------------
+
+type Handler = (
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+  clients: BridgeClients,
+) => Promise<void> | void;
+
+async function pingSafe(tool: string, clients: BridgeClients): Promise<unknown> {
+  try {
+    return await readTool(clients, tool);
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message.slice(0, 200) : 'unreachable' };
+  }
+}
+
+const ROUTES: Record<string, Handler> = {
+  '/api/health': async (_req, res, _url, clients) => {
+    const root = xeniaRoot();
+    const [ticketsPing, kbPing] = [
+      await pingSafe('xenia-tickets.ping', clients),
+      await pingSafe('xenia-kb.ping', clients),
+    ];
+    const events = readEvents(root);
+    const drs = readDecisionRecords(root);
+    const approvals = readApprovals(root);
+    json(res, 200, {
+      ok: true,
+      service: 'xenia-observatory-bridge',
+      phase: 'P2-core',
+      writeTools: WRITE_TOOLS.length, // 0 — asserted by tests
+      children: { tickets: ticketsPing, kb: kbPing },
+      estate: {
+        events: events.events.length,
+        eventsSkipped: events.skipped,
+        decisionRecords: drs.records.length,
+        approvals: approvals.length,
+      },
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Server factory (exported for in-process tests)
+// ---------------------------------------------------------------------------
+
+export function createBridgeServer(clients: BridgeClients = defaultClients()): Server {
+  return createServer((req, res) => {
+    // INVARIANT #1 — DNS-rebinding defense
+    if (!isLoopbackHost(req)) {
+      json(res, 403, { error: 'loopback only' });
+      return;
+    }
+    // INVARIANT #2 — read-only bridge: nothing but GET exists
+    if (req.method !== 'GET') {
+      json(res, 405, { error: 'read-only bridge — GET only' });
+      return;
+    }
+    const url = new URL(req.url ?? '/', `http://${HOST}`);
+    const handler = ROUTES[url.pathname];
+    if (!handler) {
+      json(res, 404, { error: 'not found' });
+      return;
+    }
+    // Wrap in .then so a SYNCHRONOUS throw in a handler is still caught and
+    // turned into a (redacted) error response rather than hanging the socket.
+    Promise.resolve()
+      .then(() => handler(req, res, url, clients))
+      .catch((err: unknown) => {
+        const status =
+          typeof (err as { httpStatus?: number }).httpStatus === 'number'
+            ? (err as { httpStatus: number }).httpStatus
+            : 500;
+        json(res, status, {
+          error: err instanceof Error ? err.message.slice(0, 300) : 'internal error',
+        });
+      });
+  });
+}
+
+/** Exported so P3 can register endpoints without touching the security shell. */
+export function registerRoute(path: string, handler: Handler): void {
+  ROUTES[path] = handler;
+}
+
+export type { Handler };
+
+// ---------------------------------------------------------------------------
+// Port management + main
 // ---------------------------------------------------------------------------
 
 function portFree(port: number): Promise<boolean> {
@@ -48,9 +185,7 @@ function portFree(port: number): Promise<boolean> {
 async function choosePort(): Promise<number> {
   if (await portFree(PREFERRED_PORT)) return PREFERRED_PORT;
   if (PORT_PINNED) {
-    throw new Error(
-      `XENIA_OBS_BRIDGE_PORT=${PREFERRED_PORT} is already in use. Free it or pick another.`,
-    );
+    throw new Error(`XENIA_OBS_BRIDGE_PORT=${PREFERRED_PORT} is already in use.`);
   }
   for (let p = PREFERRED_PORT + 1; p <= PREFERRED_PORT + PORT_MAX_PROBES; p++) {
     if (await portFree(p)) return p;
@@ -58,67 +193,21 @@ async function choosePort(): Promise<number> {
   throw new Error(`no free port in ${PREFERRED_PORT}..${PREFERRED_PORT + PORT_MAX_PROBES}`);
 }
 
-// ---------------------------------------------------------------------------
-// DNS-rebinding defense
-// ---------------------------------------------------------------------------
-
-function isLoopbackHost(req: IncomingMessage): boolean {
-  const host = (req.headers['host'] ?? '').split(':')[0]?.toLowerCase() ?? '';
-  return host === '127.0.0.1' || host === 'localhost';
-}
-
-// ---------------------------------------------------------------------------
-// Outbound chokepoint — P2 replaces the identity redactor with the Art IV
-// Layer-4 scrub (server/redact.ts). EVERYTHING leaves through json().
-// ---------------------------------------------------------------------------
-
-function redact<T>(payload: T): T {
-  return payload; // P0 stub — /api/health only carries non-PII status fields
-}
-
-function json(res: ServerResponse, status: number, body: unknown): void {
-  res.writeHead(status, {
-    'content-type': 'application/json; charset=utf-8',
-    'cache-control': 'no-store',
-    'x-content-type-options': 'nosniff',
-  });
-  res.end(JSON.stringify(redact(body)));
-}
-
-// ---------------------------------------------------------------------------
-// HTTP server — P0 surface: /api/health only
-// ---------------------------------------------------------------------------
-
-const server = createServer((req, res) => {
-  if (!isLoopbackHost(req)) {
-    json(res, 403, { error: 'loopback only' });
-    return;
-  }
-  const url = (req.url ?? '/').split('?')[0];
-
-  if (req.method === 'GET' && url === '/api/health') {
-    json(res, 200, {
-      ok: true,
-      service: 'xenia-observatory-bridge',
-      phase: 'P0-scaffold',
-      writeTools: WRITE_TOOLS.length, // 0 — asserted by tests
-    });
-    return;
-  }
-
-  json(res, 404, { error: 'not found' });
-});
-
 async function main(): Promise<void> {
+  // P3 route registration happens via side-effect import. The specifier is a
+  // variable so TS does not resolve it at build time (the module is absent
+  // until P3 lands); the catch tolerates its absence.
+  const routesModule = './routes.js';
+  await import(routesModule).catch(() => undefined);
+  const server = createBridgeServer();
   const port = await choosePort();
   server.listen(port, HOST, () => {
     writeFileSync(PORT_FILE, String(port), 'utf8');
     console.log(
       `[xenia-obs] Support Observatory bridge listening on http://${HOST}:${port} ` +
-        `(loopback only · read-only · 0 write tools)`,
+        `(loopback only · read-only · ${READ_TOOLS.length} read tools · ${WRITE_TOOLS.length} write tools)`,
     );
   });
-
   const cleanup = (): void => {
     try {
       rmSync(PORT_FILE, { force: true });
@@ -131,7 +220,6 @@ async function main(): Promise<void> {
   process.on('SIGTERM', cleanup);
 }
 
-// Only run when invoked directly (tests import the exports above)
 const isMain = process.argv[1] !== undefined && import.meta.url.endsWith(
   process.argv[1].replace(/\\/g, '/').split('/').pop() ?? '',
 );
