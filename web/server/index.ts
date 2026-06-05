@@ -25,7 +25,8 @@ import { readEvents, readDecisionRecords, readApprovals } from './files.js';
 
 export { WRITE_TOOLS, READ_TOOLS };
 
-const HOST = '127.0.0.1'; // loopback only — NEVER 0.0.0.0
+/** Loopback-only bind address. Exported so tests assert the production constant. */
+export const HOST = '127.0.0.1'; // loopback only — NEVER 0.0.0.0
 const PREFERRED_PORT = Number(process.env['XENIA_OBS_BRIDGE_PORT'] ?? 8791);
 const PORT_PINNED = process.env['XENIA_OBS_BRIDGE_PORT'] != null;
 const PORT_MAX_PROBES = 25;

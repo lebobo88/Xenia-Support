@@ -100,6 +100,19 @@ describe('redactPayload — keep-list & default-scrub', () => {
     expect(out['outcome']).toBeNull();
     expect(out['weird']).toBe('[REDACTED]');
   });
+
+  it('fail-closes exotic OBJECT types (Date/Map/Set), never emitting {}', () => {
+    const out = redactPayload({
+      when: new Date('2026-06-05T00:00:00Z'),
+      lookup: new Map([['a', 1]]),
+      bag: new Set([1, 2]),
+      re: /secret/,
+    }) as Record<string, unknown>;
+    expect(out['when']).toBe('[REDACTED]');
+    expect(out['lookup']).toBe('[REDACTED]');
+    expect(out['bag']).toBe('[REDACTED]');
+    expect(out['re']).toBe('[REDACTED]');
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -112,6 +112,14 @@ function redactValue(key: string | null, value: unknown): unknown {
     }
 
     if (typeof value === 'object') {
+      // Fail-closed for exotic object types (Date, Map, Set, RegExp, class
+      // instances): they have no enumerable own string keys, so the generic
+      // branch would emit `{}` and silently drop content. Only PLAIN objects
+      // (the shapes our JSON-derived payloads actually use) are recursed.
+      const proto = Object.getPrototypeOf(value);
+      if (proto !== Object.prototype && proto !== null) {
+        return '[REDACTED]';
+      }
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
         out[k] = redactValue(k, v);

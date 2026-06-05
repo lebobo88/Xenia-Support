@@ -36,6 +36,7 @@ import {
   readTool,
   WRITE_TOOLS,
   READ_TOOLS,
+  HOST,
   type BridgeClients,
 } from '../../server/index.js';
 import { allowTool } from '../../server/whitelist.js';
@@ -93,6 +94,10 @@ describe('INVARIANT #2 — read-only bridge', () => {
 });
 
 describe('INVARIANT #1 — loopback/Host guard (DNS-rebinding defense)', () => {
+  it('the production bind constant is loopback (never 0.0.0.0)', () => {
+    expect(HOST).toBe('127.0.0.1');
+  });
+
   it('rejects foreign Host headers with 403', async () => {
     const res = await rawGet(port, '/api/health', 'evil.example.com');
     expect(res.status).toBe(403);
