@@ -10,16 +10,22 @@ export function Kpis(): JSX.Element {
     <StateGate state={state} emptyLabel="No runs in range — KPIs populate once DecisionRecords exist.">
       {(k) => (
         <div>
-          {/* coverage honesty banner */}
-          {k.cost_coverage_pct !== null && k.cost_coverage_pct < 80 ? (
+          {/* coverage honesty banner — cost is NEVER shown without a coverage
+              statement (anti-Goodhart). The null case (no resolutions in range)
+              gets its own banner rather than being silently omitted. */}
+          {k.cost_coverage_pct === null ? (
             <div className="banner warn" role="note" style={{ marginBottom: 16 }}>
-              ⚠ Cost coverage {pct((k.cost_coverage_pct ?? 0) / 100)} — cost figures below are partial (only {k.cost_coverage_n}/{k.cost_coverage_denom} resolutions carry a cost).
+              ⚠ No resolutions in range — cost-per-resolution is unavailable (0 coverage).
             </div>
-          ) : k.cost_coverage_pct !== null ? (
+          ) : k.cost_coverage_pct < 80 ? (
+            <div className="banner warn" role="note" style={{ marginBottom: 16 }}>
+              ⚠ Cost coverage {pct(k.cost_coverage_pct / 100)} — cost figures below are partial (only {k.cost_coverage_n}/{k.cost_coverage_denom} resolutions carry a cost).
+            </div>
+          ) : (
             <div className="banner ok" role="note" style={{ marginBottom: 16 }}>
-              ✓ Cost coverage {pct((k.cost_coverage_pct ?? 0) / 100)} ({k.cost_coverage_n}/{k.cost_coverage_denom} resolutions).
+              ✓ Cost coverage {pct(k.cost_coverage_pct / 100)} ({k.cost_coverage_n}/{k.cost_coverage_denom} resolutions).
             </div>
-          ) : null}
+          )}
 
           {/* anti-Goodhart paired card */}
           <div className="card" style={{ marginBottom: 14 }}>

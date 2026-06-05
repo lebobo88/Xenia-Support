@@ -95,6 +95,18 @@ describe('Kpis', () => {
     render(<Kpis />);
     expect(await screen.findByText(/KPIs populate once DecisionRecords exist/i)).toBeInTheDocument();
   });
+
+  it('offline when the bridge is down', async () => {
+    stubFetch({}, true);
+    render(<Kpis />);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/bridge offline/i);
+  });
+
+  it('null cost coverage still shows a coverage banner (never cost without coverage)', async () => {
+    stubFetch({ '/api/kpi/snapshot': { ...snap, cost_coverage_pct: null, cost_per_resolution: null } });
+    render(<Kpis />);
+    expect(await screen.findByText(/no resolutions in range/i)).toBeInTheDocument();
+  });
 });
 
 describe('KbView', () => {
@@ -104,18 +116,48 @@ describe('KbView', () => {
     expect(await screen.findByText('STALE')).toBeInTheDocument();
     expect(screen.getByText(/volatile > 90d/i)).toBeInTheDocument();
   });
+
+  it('empty when no docs', async () => {
+    stubFetch({ '/api/kb/health': { doc_count: 0, index_fresh: true, kb_gap_filed: 0, docs: [] } });
+    render(<KbView />);
+    expect(await screen.findByText(/no kb documents/i)).toBeInTheDocument();
+  });
+
+  it('offline when the bridge is down', async () => {
+    stubFetch({}, true);
+    render(<KbView />);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/bridge offline/i);
+  });
 });
 
 describe('HitlAged', () => {
-  it('renders open escalations with age band; empty when clear', async () => {
+  it('renders open escalations with age band', async () => {
     stubFetch({ '/api/hitl/aged': { count: 1, items: [{ ticket_id: 'T-102', severity: 'P1', age_hours: 50, age_band: 'old', agent: 'hestia', ts: '2026-06-03T00:00:00Z', trigger: 'P1 outage' }] } });
     render(<HitlAged onOpen={() => undefined} />);
     expect(await screen.findByText('T-102')).toBeInTheDocument();
     expect(screen.getByText('old')).toBeInTheDocument();
   });
+
+  it('empty when the queue is clear', async () => {
+    stubFetch({ '/api/hitl/aged': { count: 0, items: [] } });
+    render(<HitlAged onOpen={() => undefined} />);
+    expect(await screen.findByText(/HITL queue is clear/i)).toBeInTheDocument();
+  });
+
+  it('offline when the bridge is down', async () => {
+    stubFetch({}, true);
+    render(<HitlAged onOpen={() => undefined} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/bridge offline/i);
+  });
 });
 
 describe('TicketDetail', () => {
+  it('offline when the bridge is down', async () => {
+    stubFetch({}, true);
+    render(<TicketDetail id="000001" onBack={() => undefined} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/bridge offline/i);
+  });
+
   it('renders history timeline + read-only approvals note (no write affordance)', async () => {
     stubFetch({
       '/api/ticket/': {
