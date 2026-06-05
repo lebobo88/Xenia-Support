@@ -4,3 +4,7 @@ hearth/kb/.kb-index.db-*
 
 # Runtime dispatch-budget counters (per-run, not versioned)
 hearth/progress/.budget-*.json
+
+# Python bytecode (parity-oracle runs)
+__pycache__/
+*.pyc
