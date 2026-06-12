@@ -39,6 +39,11 @@
             "type": "command",
             "command": "powershell -File .claude/hooks/pre-tool-privilege.ps1",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-privilege.sh",
+            "timeout": 10
           }
         ]
       }
