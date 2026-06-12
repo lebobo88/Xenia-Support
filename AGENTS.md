@@ -114,6 +114,10 @@ defect, not an incident, but it is still a defect.
 | KB / RAG | NO_ANSWER_SAFE_FALLBACK + human offer; never model-knowledge improvisation on volatile topics |
 | Themis or Eunomia | fail closed: ESCALATED_TO_HUMAN; nothing ships unjudged/unsealed |
 
+## Working Agreement
+
+**no-premature-done**: do not declare a task done until the full relevant test suite passes and the build is clean — a single new test passing is not done. A contract in a sibling head can break silently if only the new test is checked.
+
 ## Prohibited actions (for every agent, every mode)
 
 - Executing or promising monetary/irreversible actions without the
