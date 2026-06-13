@@ -34,6 +34,33 @@ absent degrades to local files, never to failure.
   expose the corresponding env vars. The bridge ingests both the null and
   populated forms without change — no bridge update required.
 
+## Watcher flow (offset → dedup → memory.add → cells)
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+flowchart TD
+    EJ[(hearth/progress/events.jsonl<br/>single writer: SLA-stamp hook)]
+    EJ --> W{xenia-bridge watcher poll}
+    W --> OFF[read watermark<br/>daemon_meta: xenia-watcher:xenia:offset]
+    OFF --> RD[read new bytes from offset]
+    RD --> PART{partial trailing line?}
+    PART -- yes --> SKIP[skip; wait for completion]
+    PART -- no --> SHR{file shrank?<br/>rotation/truncate}
+    SHR -- yes --> RST[reset offset → 0<br/>rely on event_id dedup]
+    SHR -- no --> DD{event_id seen?}
+    RST --> DD
+    DD -- yes --> DROP[skip duplicate]
+    DD -- no --> RR[Layer-4 re-redaction<br/>RedactionEngine]
+    RR --> CELL[map kind → cell]
+    CELL --> ADD[memory.add with explicit cell]
+    ADD --> ADV[advance watermark]
+```
+
+The watcher never trusts hook-side redaction (Layers 1–3 may all have
+failed); it re-redacts at Layer 4 before `memory.add`. `event_id`
+(`x-<utc-ticks>-<hex4>`) is the idempotency key, so an offset reset after
+rotation cannot double-ingest.
+
 ## Cell mapping (the trigram manifesto, compiled)
 
 TheEights cells use English names; one cell per memory.

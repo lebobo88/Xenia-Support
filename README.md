@@ -1,7 +1,7 @@
 # Xenia — The Customer-Support Crown
 
-**Status:** active · **Agents:** 11 · **Skills:** 15 · **Commands:** 7 ·
-**Rubrics:** 6 · **Hooks:** 3
+**Status:** active · **Agents:** 11 (10 heads + Echo sub-agent) · **Skills:** 15 ·
+**Commands:** 7 · **Rubrics:** 6 · **Hook stages:** 4 (×2 ps1/sh flavours)
 
 > *Xenia* is the ancient Greek covenant of guest and host — the sacred
 > duty owed to whoever arrives at the door in need. This pack is that
@@ -60,6 +60,76 @@ flowchart LR
 
 Every run ends in exactly one terminal state: `RESOLVED`,
 `ESCALATED_TO_HUMAN`, `FOLLOW_UP_TICKET`, or `NO_ANSWER_SAFE_FALLBACK`.
+
+## System context
+
+Xenia is standalone-first and plugs into the sibling ecosystem additively.
+Every external dependency is best-effort and degrades safe (see
+[Degraded modes](#degraded-modes)).
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+graph TD
+    subgraph Xenia["Xenia (customer-support squad)"]
+      P[support pipeline<br/>Iris → Hestia → … → Themis → Eunomia]
+      EJ[(hearth/progress/events.jsonl)]
+      AP[(hearth/approvals/<br/>Article V artifacts)]
+    end
+
+    CH[ticket-system /<br/>channel adapters] -->|SUPPORT_TICKET| P
+    P -->|send_response /<br/>execute_approved| KT[xenia-tickets MCP]
+    P -->|search / get| KB[xenia-kb MCP]
+
+    HY[Hydra supervisor] -->|HANDOFF / HITL_REQUEST| P
+    P -->|DECISION_RECORD / PRD| HY
+    HY -->|/hydra:approve| AP
+
+    P -.->|stamp hook<br/>single writer| EJ
+    EJ -->|xenia-bridge watcher| T8[TheEights<br/>memory · cells · governance]
+    P -->|VOC_REPORT| ES[ExecutiveSuite<br/>CXO/CPO/CRO]
+    P -->|anomaly events<br/>redteam_escape / injection_finding| AS[AgentSmith Sentinel]
+
+    classDef ext fill:#1f2933,stroke:#5fb3b3,color:#e0e0e0;
+    class CH,HY,T8,ES,AS ext;
+```
+
+System-context detail per edge: channel adapters →
+[channels.md](integrations/channels.md) / [ticket-system.md](integrations/ticket-system.md);
+Hydra orchestration → [hydra.md](integrations/hydra.md); TheEights bridge →
+[eights.md](integrations/eights.md); ExecutiveSuite →
+[executive-suite.md](integrations/executive-suite.md); AgentSmith push →
+[agentsmith.md](integrations/agentsmith.md); MCP servers →
+[mcp-servers.md](integrations/mcp-servers.md); WS-AUTH token flow →
+[auth.md](integrations/auth.md); hooks → [hooks.md](integrations/hooks.md).
+
+## HITL escalation (ticket → human → resume)
+
+A Hermes `HITL_REQUEST` pauses the workflow; the human's decision becomes the
+approval artifact that is the sole source of execution authority (Article V).
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+sequenceDiagram
+    participant Tk as Ticket / pipeline
+    participant He as Hermes (escalation-handoff)
+    participant Hy as Hydra supervisor
+    participant Hu as Human operator
+    participant Sv as xenia-tickets
+
+    Tk->>He: escalation trigger (human request / regulatory flag / blocked clearance)
+    He->>Hy: HITL_REQUEST (pauses workflow)
+    Note over Hy: workflow suspended at HITL gate
+    Hu->>Hy: /hydra:approve <workflow_id>
+    Hy->>He: resume with decision
+    He->>He: write hearth/approvals/APPROVAL-<ticket_id>-*.yaml (status: approved)
+    He->>Sv: execute_approved{ticket_id, action, scope, approval_id, capability_token}
+    Note over Sv: WS-AUTH verify + Article V deny-by-default
+    Sv-->>He: {ok:true, executed_at} or ARTICLE_V_DENY
+    He-->>Tk: terminal state (RESOLVED / ESCALATED_TO_HUMAN)
+```
+
+In degraded mode (no Hydra), the `HITL_REQUEST` prints an approval-request
+block and halts in-chat; the same `APPROVAL-*.yaml` artifact gates execution.
 
 ## Two ways to run
 
@@ -122,7 +192,7 @@ Xenia/
 ├── hooks.json                  # hook registry
 ├── rubrics/                    # 6 judging rubrics (Themis + Hydra judge parity)
 ├── .claude/
-│   ├── agents/                 # 9 heads + soteria-crew/echo.md
+│   ├── agents/                 # 10 heads + soteria-crew/echo.md (11 agent files)
 │   ├── commands/               # 7 slash commands
 │   ├── skills/                 # 15 skills
 │   └── hooks/                  # Layer-3 enforcement hooks:
@@ -135,7 +205,10 @@ Xenia/
 │   ├── approvals/              # human approval artifacts (Article V)
 │   ├── progress/               # .current-context.md, events.jsonl
 │   └── output/{tickets,escalations,voc,quality,kb-gaps}/
-└── integrations/               # hydra, eights, executive-suite, ticket-system
+├── mesh-manifest.yaml         # AgentMesh control-plane enrollment
+├── tools/context_token/sign.py # portable-context / clearance token signer
+└── integrations/               # hydra, eights, executive-suite, ticket-system,
+                                #   channels, agentsmith, auth, mcp-servers, hooks
 ```
 
 ## Ecosystem
