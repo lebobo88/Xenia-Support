@@ -37,9 +37,15 @@ approval `issued_by` is the one documented accountability exemption. Policy:
 ## Run it
 
 ```powershell
-cd C:\AiAppDeployments\Xenia\web
+cd <xenia-repo>/web    # e.g. ~/code/Xenia/web
 npm install
 npm run build      # tsc -b && vite build
+
+# Point the bridge at your Hydra checkout (sibling auto-detect is the default;
+# set this only if Hydra is not a sibling of the Xenia repo):
+#   PowerShell:  $env:HYDRA_ROOT = "<path-to-Hydra>"
+#   bash/zsh:    export HYDRA_ROOT="<path-to-Hydra>"
+# Or set AIAPP_BASE to the parent dir that contains both Xenia and Hydra.
 
 # two terminals:
 npm run bridge     # loopback bridge on 127.0.0.1:8791 (writes .xenia-bridge-port)
@@ -55,7 +61,8 @@ Ports (override via env; both roll forward if taken):
 | Vite (UI) | 5197 | `XENIA_OBS_DEV_PORT` |
 
 The bridge spawns `python -m mcp_servers.{xenia_tickets,xenia_kb}` from
-`HYDRA_ROOT` (default `C:/AiAppDeployments/Hydra`) with
+`HYDRA_ROOT` (set this env var, or let it auto-detect a sibling `Hydra/`
+directory next to the Xenia repo — see `server/xenia-client.ts`) with
 `HYDRA_XENIA_ROOT` pointing at the Xenia repo, and reads
 `hearth/{progress/events.jsonl, output/tickets/*.md, approvals/*.yaml}`.
 

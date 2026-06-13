@@ -14,11 +14,14 @@ runtime:
   type: python-langgraph
   # Source: ~/.hydra/backends.json — "command": "python", "args": ["-m","mcp_servers.xenia"]
   entrypoint: "mcp_servers/xenia/__main__.py"
-  cwd: "C:/AiAppDeployments/Hydra"
+  # Portable placeholder — the control plane expands ${HYDRA_ROOT} to the Hydra
+  # checkout (mirrors Hydra's own mesh-manifest.yaml cwd/PYTHONPATH pattern).
+  cwd: "${HYDRA_ROOT}"
   # Source: ~/.hydra/backends.json "xenia" env block.
   env:
-    PYTHONPATH: "C:/AiAppDeployments/Hydra"
-    HYDRA_XENIA_ROOT: "C:/AiAppDeployments/Xenia"
+    PYTHONPATH: "${HYDRA_ROOT}"
+    # ${HYDRA_XENIA_ROOT} expands to this (the Xenia) repo's checkout.
+    HYDRA_XENIA_ROOT: "${HYDRA_XENIA_ROOT}"
   healthProbe:
     type: mcp-tool-call
     # "xenia.ping" is the dedicated health probe.
@@ -63,11 +66,11 @@ audit:
 
 governance:
   # Constitution: Xenia support-constitution.
-  # Verified to exist: C:/AiAppDeployments/Xenia/hearth/specs/support-constitution.md
-  # Runtime.cwd is C:/AiAppDeployments/Hydra.
+  # Verified to exist: ${HYDRA_XENIA_ROOT}/hearth/specs/support-constitution.md
+  # Runtime.cwd is ${HYDRA_ROOT}.
   # Path traversal from Hydra cwd:
-  # resolve(join("C:/AiAppDeployments/Hydra","../Xenia/hearth/specs/support-constitution.md"))
-  # = C:/AiAppDeployments/Xenia/hearth/specs/support-constitution.md (correct).
+  # resolve(join("${HYDRA_ROOT}","../Xenia/hearth/specs/support-constitution.md"))
+  # = ${HYDRA_XENIA_ROOT}/hearth/specs/support-constitution.md (correct).
   #
   # VALIDATOR FRICTION NOTE (2026-06-04):
   # The constitutionPath "../Xenia/hearth/specs/support-constitution.md" contains ".."
@@ -78,7 +81,7 @@ governance:
   # traversal correctly. The schema has no "no-dotdot" rule. If a future P9 validator
   # adds a "must not cross above sibling root" rule, the cleanest fix is to extend the
   # schema with an optional metadata.constitutionCwd override pointing to
-  # C:/AiAppDeployments/Xenia and set constitutionPath: "hearth/specs/support-constitution.md".
+  # ${HYDRA_XENIA_ROOT} and set constitutionPath: "hearth/specs/support-constitution.md".
   # See manifests/GOVERNANCE-ROUTING.md §validator-friction for the full analysis.
   constitutionPath: "../Xenia/hearth/specs/support-constitution.md"
   # xenia server has no dedicated attest tool.

@@ -1,7 +1,7 @@
 # Integration: ExecutiveSuite
 
 How the support crown exchanges signal with the executive crown
-(`C:\AiAppDeployments\ExecutiveSuite`). The natural counterparts are the
+([`ExecutiveSuite`](https://github.com/lebobo88/ExecutiveSuite)). The natural counterparts are the
 **CXO** (customer experience), **CPO** (product), **CRO** (revenue), and
 **COO** (operating cadence).
 

@@ -33,8 +33,8 @@ validates it **fail-closed** on three gates that must all pass:
 | `metadata.id` | `xenia` |
 | `metadata.backendsKey` | `xenia` (gateway flat-dict key in `~/.hydra/backends.json`) |
 | `runtime.type` | `python-langgraph` |
-| `runtime.entrypoint` | `mcp_servers/xenia/__main__.py` (on the **Hydra** side; `cwd: C:/AiAppDeployments/Hydra`) |
-| `runtime.env.HYDRA_XENIA_ROOT` | `C:/AiAppDeployments/Xenia` (servers operate on this repo's tree) |
+| `runtime.entrypoint` | `mcp_servers/xenia/__main__.py` (on the **Hydra** side; `cwd: ${HYDRA_ROOT}`) |
+| `runtime.env.HYDRA_XENIA_ROOT` | `${HYDRA_XENIA_ROOT}` (servers operate on this repo's tree) |
 | `governance.constitutionPath` | `../Xenia/hearth/specs/support-constitution.md` |
 
 The registry is the sole writer of `~/.hydra/backends.json` — Xenia's gateway

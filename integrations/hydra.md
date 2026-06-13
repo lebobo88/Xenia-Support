@@ -7,7 +7,7 @@ squad. Xenia is standalone-first; everything here is additive.
 
 - Manifest: `squad.yaml` at the Xenia root (`source_pack: .`). The same
   file is installed at `Hydra/squads/customer-support/squad.yaml` with
-  `source_pack: C:\AiAppDeployments\Xenia` (project-level discovery wins;
+  `source_pack: https://github.com/lebobo88/Xenia` (project-level discovery wins;
   the original stub is preserved as `squad.yaml.stub-backup`).
 - Entrypoint: `claude-skill` — Hydra's dispatcher invokes the squad via
   its commands (`invoke.command_hint: /support-ticket`).
@@ -229,7 +229,8 @@ both modes (constitution Article V).
 `Hydra/mcp_servers/xenia/` exposes the pack metadata to the gateway:
 `xenia.ping`, `xenia.agent.list/get`, `xenia.skill.list/get`,
 `xenia.command.list/get`, `xenia.output.write/read`. Root resolved from
-`HYDRA_XENIA_ROOT` (default `C:/AiAppDeployments/Xenia`). Registered in
+`HYDRA_XENIA_ROOT` (set to this repo's checkout; e.g.
+`${AIAPP_BASE}/Xenia`). Registered in
 `~/.hydra/backends.json`; tools surface as
 `mcp__hydra_gateway__xenia__*`. The server writes ONLY under
 `hearth/output/` — `events.jsonl` belongs to the stamp hook alone.

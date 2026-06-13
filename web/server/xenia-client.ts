@@ -20,13 +20,51 @@ import { fileURLToPath } from 'node:url';
 // Roots — overridable for tests
 // ---------------------------------------------------------------------------
 
+/**
+ * Walk UP from this module's directory until we find the dir that owns a
+ * repo sentinel (`package.json` / `.git`). That dir is the Xenia repo root.
+ * Falls back to the historical `web/server → Xenia root` two-hop if no
+ * sentinel is found (e.g. an unusual bundling layout).
+ */
 function repoRoot(): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return resolve(here, '..', '..'); // web/server → Xenia root
+  let dir = here;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    if (existsSync(resolve(dir, 'package.json')) || existsSync(resolve(dir, '.git'))) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) break; // reached filesystem root
+    dir = parent;
+  }
+  return resolve(here, '..', '..'); // web/server → Xenia root (legacy fallback)
 }
 
+/**
+ * Resolve the sibling Hydra repo root portably (no machine-specific literal).
+ *
+ * Tier 1: HYDRA_ROOT env (existence-gated — ignored if it points nowhere).
+ * Tier 2: sibling under (AIAPP_BASE env || dirname(xeniaRepoRoot)) / 'Hydra'.
+ *         Hydra is a SIBLING of the Xenia repo, so we anchor off the detected
+ *         Xenia repo root rather than walking for a Hydra sentinel.
+ * Else:   throw a clear, actionable error.
+ *
+ * The returned path is later existence-gated again in connect() before spawn.
+ */
 export function hydraRoot(): string {
-  return process.env['HYDRA_ROOT'] ?? 'C:/AiAppDeployments/Hydra';
+  const fromEnv = process.env['HYDRA_ROOT'];
+  if (fromEnv && existsSync(fromEnv)) return fromEnv;
+
+  const base = process.env['AIAPP_BASE'] ?? dirname(repoRoot());
+  const sibling = resolve(base, 'Hydra');
+  if (existsSync(sibling)) return sibling;
+
+  throw new Error(
+    'Cannot locate Hydra repo root. Set HYDRA_ROOT to the Hydra checkout, ' +
+      'or set AIAPP_BASE to the directory that contains both Xenia and Hydra ' +
+      `(looked for a "Hydra" dir under ${base}).`,
+  );
 }
 
 export function xeniaRoot(): string {

@@ -8,7 +8,7 @@ retrieval and ticket actions.
 Both servers are implemented on the **Hydra** side (they share Hydra's
 `_pack_shim` runner and `hydra_core.auth.capability`), but they operate
 entirely on the **Xenia** repo's working tree via `HYDRA_XENIA_ROOT`
-(default `C:/AiAppDeployments/Xenia`):
+(set to this repo's checkout, e.g. `${AIAPP_BASE}/Xenia`):
 
 | Server | Code path | Root env | KB/store path |
 |---|---|---|---|
