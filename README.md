@@ -85,13 +85,34 @@ graph TD
     HY -->|/hydra:approve| AP
 
     P -.->|stamp hook<br/>single writer| EJ
-    EJ -->|xenia-bridge watcher| T8[TheEights<br/>memory · cells · governance]
-    P -->|VOC_REPORT| ES[ExecutiveSuite<br/>CXO/CPO/CRO]
-    P -->|anomaly events<br/>redteam_escape / injection_finding| AS[AgentSmith Sentinel]
+    EJ -->|xenia-bridge watcher| T8[TheEights<br/>memory · cells · governance · root of trust]
+    P -->|VOC_REPORT| ES[ExecutiveSuite<br/>CXO/CPO/CRO · executive squad]
+    P -->|anomaly events<br/>redteam_escape / injection_finding| AS[AgentSmith<br/>Matrix warden · N1..N10 · sentinel]
+
+    HY -.->|HANDOFF / policy envelope<br/>regulated-claim review| SN[Senate<br/>the Curia · legal-compliance squad]
+    SN -.->|legal guidance via Hydra| HY
+
+    subgraph Mesh["AgentMesh — binding control plane (the tenth)"]
+      REG[(one registry<br/>~/.agentmesh/state.db<br/>writes ~/.hydra/backends.json)]
+      SUP[lifecycle supervisor<br/>health probe: xenia.ping]
+      AUD[federated audit timeline<br/>stitched from T8 / AS / Hydra]
+    end
+    AM[mesh-manifest.yaml] -.->|enroll: schema + attest + inspect| Mesh
+    Xenia -.->|xenia / xenia-kb / xenia-tickets surfaces| AM
+    Mesh -.->|routes + observes<br/>no governance of its own| HY
 
     classDef ext fill:#1f2933,stroke:#5fb3b3,color:#e0e0e0;
-    class CH,HY,T8,ES,AS ext;
+    classDef mesh fill:#2a2440,stroke:#a888d8,color:#e0e0e0;
+    class CH,HY,T8,ES,AS,SN ext;
+    class REG,SUP,AUD,AM mesh;
 ```
+
+The mesh is **nine sibling systems bound by AgentMesh, the tenth**:
+governance/substrate (TheEights, AgentSmith), orchestration/engineering
+(Hydra, pair-programmer), squad source-packs (ExecutiveSuite, RLM-Creative,
+MarketBliss, Senate, and Xenia), all enrolled into AgentMesh's one registry /
+lifecycle / observability / audit plane. Authority precedence stays
+TheEights → AgentSmith → Hydra; AgentMesh routes and observes only.
 
 System-context detail per edge: channel adapters →
 [channels.md](integrations/channels.md) / [ticket-system.md](integrations/ticket-system.md);
@@ -100,7 +121,8 @@ Hydra orchestration → [hydra.md](integrations/hydra.md); TheEights bridge →
 [executive-suite.md](integrations/executive-suite.md); AgentSmith push →
 [agentsmith.md](integrations/agentsmith.md); MCP servers →
 [mcp-servers.md](integrations/mcp-servers.md); WS-AUTH token flow →
-[auth.md](integrations/auth.md); hooks → [hooks.md](integrations/hooks.md).
+[auth.md](integrations/auth.md); hooks → [hooks.md](integrations/hooks.md);
+AgentMesh enrollment → [agentmesh.md](integrations/agentmesh.md).
 
 ## HITL escalation (ticket → human → resume)
 
@@ -208,7 +230,8 @@ Xenia/
 ├── mesh-manifest.yaml         # AgentMesh control-plane enrollment
 ├── tools/context_token/sign.py # portable-context / clearance token signer
 └── integrations/               # hydra, eights, executive-suite, ticket-system,
-                                #   channels, agentsmith, auth, mcp-servers, hooks
+                                #   channels, agentsmith, agentmesh, auth,
+                                #   mcp-servers, hooks
 ```
 
 ## Ecosystem
@@ -218,9 +241,25 @@ Xenia/
 | [Hydra](../Hydra) | orchestrator; this pack = the customer-support squad |
 | [TheEights](../TheEights) | memory + governance; event bridge, cells (risk/delight/influence), evolution |
 | [ExecutiveSuite](../ExecutiveSuite) | CXO/CPO/CRO routing for VoC briefs and executive escalations |
-| [AgentSmith](../AgentSmith) | meta-governance; artifact conventions and invariants |
+| [AgentSmith](../AgentSmith) | the Matrix warden; artifact inspection, N1..N10 fail-closed invariants, quarantine + sentinel (Xenia pushes red-team / injection findings) |
 | [pair-programmer](../pair-programmer) | the Forge crown; receives Asclepius's PRD fragments via Hydra |
 | [RLM-Creative](../RLM-Creative) | the Garland crown; structural sibling and pattern source |
+| [MarketBliss](../MarketBliss) | the marketing platform; sibling source-pack for Hydra's five `marketing-*` squads |
+| [ExecutiveSuite](../ExecutiveSuite) | C-suite decision support; the `executive` squad (CXO/CPO/CRO routing — see above) |
+| [Senate](../Senate) | the Curia; PhD-level legal wing (12 jurists under the Twelve Tables) — sibling `legal-compliance` squad. No direct Xenia adapter today; regulated-claim review reaches Xenia only as Hydra-routed `HANDOFF`/policy envelopes, the same surface as ExecutiveSuite |
+| [AgentMesh](../AgentMesh) | the binding control plane (the tenth layer); Xenia enrolls via [`mesh-manifest.yaml`](mesh-manifest.yaml). See [integrations/agentmesh.md](integrations/agentmesh.md) |
+
+> **The mesh is nine sibling AI systems bound by a tenth.** Governance &
+> substrate: [TheEights](../TheEights) (root of trust) + [AgentSmith](../AgentSmith)
+> (the warden). Orchestration & engineering: [Hydra](../Hydra) +
+> [pair-programmer](../pair-programmer). Squad source-packs:
+> [ExecutiveSuite](../ExecutiveSuite), [RLM-Creative](../RLM-Creative),
+> [MarketBliss](../MarketBliss), [Senate](../Senate), and **Xenia** (this
+> repo, the `customer-support` squad). Binding layer:
+> [AgentMesh](../AgentMesh) — one registry, one lifecycle supervisor, one
+> observability plane, one audit timeline; it routes and observes but
+> **enforces no governance of its own** (authority stays TheEights →
+> AgentSmith → Hydra).
 
 ---
 
